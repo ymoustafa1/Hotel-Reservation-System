@@ -1,4 +1,6 @@
-import java.util.*
+package database;
+import java.util.*;
+import model.*;
 
 public class HotelDatabase {
     public static ArrayList<Guest> guests = new ArrayList<>();

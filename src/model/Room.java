@@ -1,6 +1,7 @@
-import java.util.*
-import java.time.LocalDate;
-
+package model;
+import java.time.*;
+import database.*;
+import java.util.*;
 public class Room {
     private int roomId;
     private RoomType roomType;
