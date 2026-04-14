@@ -1,5 +1,6 @@
 package database;
 import java.util.*;
+import java.time.*;
 import model.*;
 
 public class HotelDatabase {
