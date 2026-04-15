@@ -32,7 +32,12 @@ public class Room {
     public int getRoomId() {
         return roomId;
     }
-
+    public void setPrice (double price){
+        this.price= price;
+    }
+    public void setRoomId(int roomId){
+        this.roomId= roomId;
+    }
     public boolean isAvailable(LocalDate start, LocalDate end) {
         for (Reservation r : HotelDatabase.reservations) {
             if (r.getRoom().getRoomId() == this.roomId) {
