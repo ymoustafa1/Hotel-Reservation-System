@@ -10,6 +10,8 @@ public class HotelDatabase {
     public static ArrayList<Invoice> invoices = new ArrayList<>();
     public static ArrayList<RoomType> roomTypes = new ArrayList<>();
     public static ArrayList<Amenity> amenities = new ArrayList<>();
+    public static ArrayList<Staff> staffMembers = new ArrayList<>();
+    public static ArrayList<Room> availableRooms = new ArrayList<>();
 
     private HotelDatabase() {}
 
@@ -29,6 +31,18 @@ public class HotelDatabase {
             }
         }
         return null;
+    }
+
+    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end){
+        //searching in the whole list of rooms stored in database for available rooms by calling the isAvailable method implemented in the class of Room
+        for(Room r :HotelDatabase.rooms)
+        {
+            if(r.isAvailable(start,end))
+            {
+                availableRooms.add(r);
+            }
+        }
+        return availableRooms;
     }
 
     public static Reservation findReservationById(int id){

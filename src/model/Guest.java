@@ -109,21 +109,9 @@ public class Guest {
 //    {
 //        AuthenticationService.login()
 //    }
-    //function returns a new list in the form of arraylist containing available rooms
-    public ArrayList<Room> viewAvailableRooms(LocalDate start , LocalDate end)
-    {
-        ArrayList<Room> availableRooms = new ArrayList<>();
-        //loops around each room in the entire rooms array and if available adds to the new list called availableRooms
-        for(Room r :HotelDatabase.rooms)
-        {
-            if(r.isAvailable(start,end))
-            {
-             availableRooms.add(r);
-            }
+    //method for viewing the available rooms only by calling the list of availableRooms stored in the database class
+    public ArrayList<Room> viewAvailableRooms(LocalDate start,LocalDate end){return HotelDatabase.availableRooms;}
 
-        }
-        return availableRooms;
-    }
     public void makeReservation(Room room , LocalDate start , LocalDate end) throws Exception
     {
         Reservation reservation = new Reservation(this ,room, start , end);
