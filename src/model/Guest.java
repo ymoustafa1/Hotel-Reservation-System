@@ -4,7 +4,7 @@ import database.*;
 import java.util.*;
 
 
-public class Guest {
+public class Guest extends AuthenticationService {
     //defining all data fields with private access modifiers
     private String username;
     private String password;
@@ -92,10 +92,8 @@ public class Guest {
     public void register() throws Exception
     {
 
-            if((HotelDatabase.findGuest(username))!=null )
-            {
-               throw new Exception("username already exists");
-            }
+        AuthenticationService.isUsernameUnique(this.username);
+
             if(password.length()<6)
             {
                 throw new Exception("Very short Password");
@@ -105,12 +103,17 @@ public class Guest {
 
 
     }
-//    public void login()
-//    {
-//        AuthenticationService.login()
-//    }
+    //uses authentication service  class login method to login
+    public Object  login()
+    {
+        return AuthenticationService.login(this.username,this.password);
+    }
     //method for viewing the available rooms only by calling the list of availableRooms stored in the database class
-    public ArrayList<Room> viewAvailableRooms(LocalDate start,LocalDate end){return HotelDatabase.availableRooms;}
+    public ArrayList<Room> viewAvailableRooms(LocalDate start , LocalDate end)
+    {
+        return HotelDatabase.availableRooms;
+    }
+
 
     public void makeReservation(Room room , LocalDate start , LocalDate end) throws Exception
     {
@@ -128,7 +131,7 @@ public class Guest {
     public void cancelReservation(Reservation res) throws Exception
     {
         //checks if same guest before cancelling
-        if(this.username.equals((res.getGuest()).getUsername())) {
+        if(!this.username.equals((res.getGuest()).getUsername())) {
             throw new Exception("Cannot Cancel Reservation");
         }
         res.cancel();
