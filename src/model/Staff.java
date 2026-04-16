@@ -2,7 +2,6 @@ package model;
 
 import database.HotelDatabase;
 
-import javax.management.relation.Role;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
@@ -14,6 +13,38 @@ abstract public class Staff
     private LocalDate dateOfBirth;
     private Role role;
     private int workingHrs;
+    private int staffID;
+    private int counter=0;
+
+    protected Staff() {}
+    protected Staff(String username,String password,Role role)
+    {
+        this.username=username;
+        this.password=password;
+        this.role=role;
+        this.staffID=++counter;      //generating an ID for each new staff member
+    }
+
+    //Setters
+    public void setPassword(String password)
+    {
+        this.password = password;
+    }
+    public void setDateOfBirth(LocalDate dateOfBirth)
+    {
+        this.dateOfBirth = dateOfBirth;
+    }
+    public void setWorkingHrs(int workingHrs) {this.workingHrs = workingHrs;}
+
+    //Getters
+    public String getUsername()
+    {
+        return username;
+    }
+    public String getPassword()
+    {
+        return password;
+    }
 
     //method for viewing any room stored in database
     public ArrayList<Room> viewAllRooms() {
@@ -32,7 +63,7 @@ abstract public class Staff
 
     //method for viewing all reservations stored in database
     public ArrayList<Reservation> viewAllReservations() {
-        return HotelDatabase.reservations
+        return HotelDatabase.reservations;
     }
 
     //method for finding guests by calling the already implemented method (findGuest) in the HotelDatabase class

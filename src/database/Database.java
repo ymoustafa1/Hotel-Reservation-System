@@ -33,7 +33,8 @@ public class HotelDatabase {
         return null;
     }
 
-    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end){
+    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end)
+    {
         //searching in the whole list of rooms stored in database for available rooms by calling the isAvailable method implemented in the class of Room
         for(Room r :HotelDatabase.rooms)
         {
