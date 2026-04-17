@@ -8,10 +8,10 @@ public class Room {
     private ArrayList<Amenity> amenities;
     private double price;
 
-    public Room(int roomId, RoomType roomType, double price) {
+    public Room(int roomId, RoomType roomType) {
         this.roomId = roomId;
         this.roomType = roomType;
-        this.price = price;
+        this.price = roomType.getBasePrice();
         this.amenities = new ArrayList<>();
     }
 

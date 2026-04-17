@@ -54,7 +54,7 @@ abstract public class Staff
     //implementing a method for the login process
     public Boolean login(String name, String pass) {
         for (Staff staff : HotelDatabase.staffMembers) {
-            //comparing username storedd in database with that entered by the user(in the parameters)
+            //comparing username stored in database with that entered by the user(in the parameters)
             if (staff.username.equals(name) && staff.password.equals(pass))
                 return true;
         }
@@ -77,7 +77,7 @@ abstract public class Staff
     }
 
     //method for validating and updating number of working hours for a staff member
-    public void setWorkingHours(int hrs) {
+    public void setWorkingHours(int hrs) throws Exception {
         //validating
         if (hrs <= 0 || hrs > 24) {
             throw new IllegalArgumentException("Invalid working hours");
