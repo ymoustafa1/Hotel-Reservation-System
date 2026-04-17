@@ -6,12 +6,12 @@ public class RoomType{
 
     public RoomType(){
     }
-    public RoomType(String name, double basePrice)throws Exception {
+    public RoomType(String name, double basePrice) {
         if (name == null || name.isEmpty()){
-            throw new Exception ("Room type can't be empty");
+            throw new IllegalArgumentException ("Room type can't be empty");
         }
         if (basePrice<0){
-            throw new Exception ("base price can't be negative");
+            throw new IllegalArgumentException ("base price can't be negative");
         }
         this.name = name;
         this.basePrice = basePrice;
