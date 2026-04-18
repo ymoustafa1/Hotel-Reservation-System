@@ -53,6 +53,7 @@ public class Invoice {
         this.paymentDate = paymentDate;
     }
 
+    // calculate total based on days reserved
     public double calculateTotal(){
 
         LocalDate start = reservation.getCheckInDate();
@@ -70,6 +71,7 @@ public class Invoice {
         return total;
     }
 
+    //change/accept payment from guest
     public void processPayment(Guest g) throws Exception{
         if (totalAmount == 0) {
             calculateTotal();

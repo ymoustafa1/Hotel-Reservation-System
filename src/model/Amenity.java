@@ -6,27 +6,30 @@ import database.*;
 public class Amenity {
     //defining all data fields with private access modifiers
     private String name;
-    private AmenityType Type;
+    private AmenityType type;
+    private double price;
 
-    public Amenity(){
-    }
-    public Amenity(String name,AmenityType Type ){
+    public Amenity(){}
+    public Amenity(String name,AmenityType Type, double price){
         this.name = name;
-        this.Type= Type;
+        this.type= Type;
+        this.price = price;
     }
     //data methods getters
     public String getName(){
         return name;
     }
     public AmenityType getType(){
-        return Type;
+        return type;
     }
+    public double getPrice(){return price;}
     //data methods setters
     public void setName(String name){
         this.name = name;
     }
     public void setType(AmenityType Type){
-        this.Type = Type;
+        this.type = Type;
     }
+    public void setPrice(double Price){this.price = Price;}
 
 }
