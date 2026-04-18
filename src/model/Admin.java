@@ -31,7 +31,7 @@ public class Admin extends Staff
             {
                 //checking if room is reserved before removing it
                 for (Reservation res : HotelDatabase.reservations) {
-                    if (res.getRoom().getRoomId() == roomId)        //getRoom() is a method that gets the reserved room....to be done by amira
+                    if (res.getRoom().getRoomId() == ID)        //getRoom() is a method that gets the reserved room....to be done by amira
                         throw new IllegalArgumentException("Room has reservations");
                 }
                 HotelDatabase.rooms.remove(r);
