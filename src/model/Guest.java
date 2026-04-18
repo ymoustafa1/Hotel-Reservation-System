@@ -11,18 +11,11 @@ public class Guest extends AuthenticationService {
     private LocalDate dateOfBirth;
     private double balance;
     private String address;
-    // creating the Gender enum
-    public enum Gender
-    {
-        MALE,
-        FEMALE
-    }
     private Gender gender;
-    private String roomPreferences;
 
     public Guest()
     {}
-    public Guest(String username,String password ,LocalDate dateOfBirth,double balance,String address, Gender gender, String roomPreferences )
+    public Guest(String username,String password ,LocalDate dateOfBirth,double balance,String address, Gender gender)
     {
         this.username=username;
         this.password=password;
@@ -30,7 +23,6 @@ public class Guest extends AuthenticationService {
         this.balance=balance;
         this.address=address;
         this.gender=gender;
-        this.roomPreferences=roomPreferences;
     }
 //data methods getters
     public double getBalance() {
@@ -57,9 +49,6 @@ public class Guest extends AuthenticationService {
         return address;
     }
 
-    public String getRoomPreferences() {
-        return roomPreferences;
-    }
 //data methods setters
     public void setBalance(double balance) {
         this.balance = balance;
@@ -85,9 +74,6 @@ public class Guest extends AuthenticationService {
         this.gender = gender;
     }
 
-    public void setRoomPreferences(String roomPreferences) {
-        this.roomPreferences = roomPreferences;
-    }
     //register method throws exception in the case of duplicated username else adds guest to Hotel Database
     public void register() throws Exception
     {
