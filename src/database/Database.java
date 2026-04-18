@@ -107,30 +107,46 @@ public class HotelDatabase {
         roomTypes.add(suite);
 
         //AMENITIES
-        Amenity wifi = new Amenity("WiFi");
-        Amenity ac = new Amenity("AC");
-        Amenity tv = new Amenity("TV");
-        Amenity minibar = new Amenity("MiniBar");
+        Amenity wifi = new Amenity("WiFi", AmenityType.Room, 100);
+        Amenity ac = new Amenity("AC", AmenityType.Room, 150);
+        Amenity tv = new Amenity("TV", AmenityType.Room, 300);
+        Amenity minibar = new Amenity("MiniBar", AmenityType.Room, 550);
+        Amenity spa = new Amenity("Spa", AmenityType.Hotel, 1000);
+        Amenity pool = new Amenity("Pool", AmenityType.Hotel, 870);
+        Amenity gym = new Amenity("Gym", AmenityType.Hotel, 560);
+        Amenity buffet = new Amenity("Lunch", AmenityType.Hotel, 300);
 
         amenities.add(wifi);
         amenities.add(ac);
         amenities.add(tv);
         amenities.add(minibar);
+        amenities.add(spa);
+        amenities.add(pool);
+        amenities.add(gym);
+        amenities.add(buffet);
 
         //ROOMS
         Room r1 = new Room(101, single);
         r1.addAmenity(wifi);
         r1.addAmenity(ac);
+        r1.addAmenity(buffet);
 
         Room r2 = new Room(102, doubleRoom);
         r2.addAmenity(wifi);
         r2.addAmenity(tv);
+        r2.addAmenity(ac);
+        r2.addAmenity(buffet);
+        r2.addAmenity(spa);
 
         Room r3 = new Room(201, suite);
         r3.addAmenity(wifi);
         r3.addAmenity(ac);
         r3.addAmenity(tv);
         r3.addAmenity(minibar);
+        r3.addAmenity(spa);
+        r3.addAmenity(gym);
+        r3.addAmenity(buffet);
+        r3.addAmenity(pool);
 
         rooms.add(r1);
         rooms.add(r2);
