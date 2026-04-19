@@ -46,10 +46,13 @@ abstract public class Staff
         return password;
     }
 
-    //method for viewing any room stored in database
-    public ArrayList<Room> viewAllRooms() {
-        return HotelDatabase.rooms;
+    public int getStaffID()
+    {
+        return staffID;
     }
+
+    //method for viewing any room stored in database
+    public ArrayList<Room> viewAllRooms(){return HotelDatabase.rooms;}
 
     //implementing a method for the login process
     public Boolean login(String name, String pass) {

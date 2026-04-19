@@ -26,13 +26,13 @@ public class Room {
         amenities.remove(a);
     }
     //data methods getters
-    public double getPrice() {
-        return price;
-    }
+    public RoomType getRoomType(){return roomType;}
+    public double getPrice() {return price;}
     public int getRoomId() {
         return roomId;
     }
     //data methods setters
+    public void setRoomType(RoomType roomType) {this.roomType = roomType;}
     public void setPrice (double price){
         this.price= price;
     }
