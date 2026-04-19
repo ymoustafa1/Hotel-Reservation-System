@@ -4,7 +4,8 @@ import java.time.*;
 import model.*;
 
 
-public class HotelDatabase {
+public class HotelDatabase
+{
     public static ArrayList<Guest> guests = new ArrayList<>();
     public static ArrayList<Room> rooms = new ArrayList<>();
     public static ArrayList<Reservation> reservations = new ArrayList<>();

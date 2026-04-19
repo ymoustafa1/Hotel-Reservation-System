@@ -3,29 +3,44 @@ package model;
 import database.HotelDatabase;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.ArrayList;
 
 public class Admin extends Staff
 {
-    public Admin(){}
     public Admin(String name,String pass)
     {
         //adding a new staff member of role admin
         super(name,pass,Role.ADMIN);
     }
 
-    //overriding method in staff class to view all rooms
+    //overriding methods in staff class to accessible functions by an admin
     @Override
     public ArrayList<Room> viewAllRooms()
     {
         return super.viewAllRooms();
     }
 
-    public Staff findStaff(String n)
+    @Override
+    public ArrayList<Room> viewAvailableRooms(LocalDate start,LocalDate end)
     {
-        return HotelDatabase.findStaff(n);
+        return super.viewAvailableRooms(start, end);
     }
+
+    @Override
+    public Guest findGuest(String name)
+    {
+        return super.findGuest(name);
+    }
+
+    @Override
+    public ArrayList<Reservation> viewAllReservations()
+    {
+        return super.viewAllReservations();
+    }
+
+    public Staff findStaff(String n) {return HotelDatabase.findStaff(n);}
 
     //finding staff member by searching for his/her ID from all staff members
     public Staff findStaffByID(int ID)
@@ -40,9 +55,9 @@ public class Admin extends Staff
 
     public void addRoom(Room r)
     {
+        //validating room
         if(r==null)
             throw new IllegalArgumentException("Room cannot be null");
-        //validating room id
         for(Room s:HotelDatabase.rooms)
         {
             if(s.getRoomId()==r.getRoomId())
@@ -76,5 +91,64 @@ public class Admin extends Staff
         existing.setPrice(upd.getPrice());  //setting the new price of the existing room to the new room's price
         existing.setRoomType(upd.getRoomType());    //...
     }
-    
+
+    public void addRoomType(RoomType rt)
+    {
+        //validating room type
+        if(rt==null)
+            throw new IllegalArgumentException("Room type cant be null");
+        for(RoomType r:HotelDatabase.roomTypes)
+        {
+            if(r.getName().equalsIgnoreCase(rt.getName()))
+                throw new IllegalArgumentException("Room type already exists");
+        }
+        HotelDatabase.roomTypes.add(rt);
+    }
+
+    public void deleteRoomType(String name)
+    {
+        for (int i=0; i<HotelDatabase.roomTypes.size(); i++)
+        {
+            RoomType m = HotelDatabase.roomTypes.get(i);
+            //comparing name entered by user with names of room types stored in database(case insensitive)
+            if (m.getName().equalsIgnoreCase(name))
+            {
+                HotelDatabase.roomTypes.remove(i);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("There is no room type that matches this name!");
+    }
+
+    public void addAmenity(Amenity a)
+    {
+        //validating amenity
+        if(a==null)
+            throw new IllegalArgumentException("Amenity can't be null");
+        for(Amenity existing:HotelDatabase.amenities)
+        {
+            if(a.getName().equalsIgnoreCase(existing.getName()))
+                throw new IllegalArgumentException("Amenity already exists");
+        }
+        HotelDatabase.amenities.add(a);
+    }
+
+    public void deleteAmenity(String name)
+    {
+        for(int i=0; i<HotelDatabase.amenities.size(); i++)
+        {
+            Amenity a=HotelDatabase.amenities.get(i);
+            //same logic as deleteRoomType method
+            if(a.getName().equalsIgnoreCase(name))
+            {
+                HotelDatabase.amenities.remove(i);
+                return;
+            }
+        }
+        throw new IllegalArgumentException("There is no amenity that matches that name!");
+    }
+
+    //overriding method to update working hrs for a staff member from staff class(only accessible by an admin)
+    @Override
+    public void setWorkingHours(int hrs) {super.setWorkingHours(hrs);}
 }
