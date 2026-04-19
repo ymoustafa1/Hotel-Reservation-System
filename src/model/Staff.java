@@ -10,11 +10,10 @@ abstract public class Staff
     //defining data members
     private String username;
     private String password;
-    private LocalDate dateOfBirth;
     private Role role;
     private int workingHrs;
     private int staffID;
-    private int counter=0;
+    private static int counter=0;
 
     protected Staff() {}
     protected Staff(String username,String password,Role role)
@@ -26,48 +25,46 @@ abstract public class Staff
     }
 
     //Setters
-    public void setPassword(String password)
+    public void setPassword(String password) {this.password = password;}
+
+    //validating number of working hours for a staff member before setting it
+    public void setWorkingHours(int hrs)
     {
-        this.password = password;
+        if(this.role!=Role.ADMIN)
+            throw new IllegalArgumentException("Only admins can change working hrs");
+        //validating
+        if (hrs <= 0 || hrs > 24) {
+            throw new IllegalArgumentException("Invalid working hours");
+        }
+        //setting after validating
+        this.workingHrs = hrs;
     }
-    public void setDateOfBirth(LocalDate dateOfBirth)
-    {
-        this.dateOfBirth = dateOfBirth;
-    }
-    public void setWorkingHrs(int workingHrs) {this.workingHrs = workingHrs;}
 
     //Getters
-    public String getUsername()
-    {
-        return username;
-    }
-    public String getPassword()
-    {
-        return password;
-    }
+    public String getUsername() {return username;}
 
-    public int getStaffID()
-    {
-        return staffID;
-    }
+    public String getPassword() {return password;}
+
+    public int getStaffID() {return staffID;}
+
+    public Role getRole() {return role;}
 
     //method for viewing any room stored in database
     public ArrayList<Room> viewAllRooms(){return HotelDatabase.rooms;}
 
-    //implementing a method for the login process
-    public Boolean login(String name, String pass) {
-        for (Staff staff : HotelDatabase.staffMembers) {
-            //comparing username stored in database with that entered by the user(in the parameters)
-            if (staff.username.equals(name) && staff.password.equals(pass))
-                return true;
+    //implementing a static method for the login process to be used by both subclasses
+    public static Staff login(String username, String password)
+    {
+        for (Staff s : HotelDatabase.staffMembers)
+        {
+            if (s.getUsername().equals(username) && s.getPassword().equals(password))
+                return s;
         }
-        return false;
+        throw new IllegalArgumentException("Invalid username or password");
     }
 
     //method for viewing all reservations stored in database
-    public ArrayList<Reservation> viewAllReservations() {
-        return HotelDatabase.reservations;
-    }
+    public ArrayList<Reservation> viewAllReservations() {return HotelDatabase.reservations;}
 
     //method for finding guests by calling the already implemented method (findGuest) in the HotelDatabase class
     public Guest findGuest(String name) {
@@ -77,15 +74,5 @@ abstract public class Staff
     //method for viewing the available rooms only by calling the list of availableRooms stored in the database class
     public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end) {
         return HotelDatabase.availableRooms;
-    }
-
-    //method for validating and updating number of working hours for a staff member
-    public void setWorkingHours(int hrs) throws Exception {
-        //validating
-        if (hrs <= 0 || hrs > 24) {
-            throw new IllegalArgumentException("Invalid working hours");
-        }
-        //setting after validating
-        this.workingHrs = hrs;
     }
 }
