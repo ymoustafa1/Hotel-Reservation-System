@@ -3,19 +3,46 @@ package model;
 import database.HotelDatabase;
 
 import java.sql.SQLException;
+import java.util.*;
+import java.util.ArrayList;
 
 public class Admin extends Staff
 {
     public Admin(){}
     public Admin(String name,String pass)
     {
-        super(name,pass,Role.ADMIN);        //adding a new staff member of role admin
+        //adding a new staff member of role admin
+        super(name,pass,Role.ADMIN);
     }
-    public void addRoom(Room r) throws Exception
+
+    //overriding method in staff class to view all rooms
+    @Override
+    public ArrayList<Room> viewAllRooms()
+    {
+        return super.viewAllRooms();
+    }
+
+    public Staff findStaff(String n)
+    {
+        return HotelDatabase.findStaff(n);
+    }
+
+    //finding staff member by searching for his/her ID from all staff members
+    public Staff findStaffByID(int ID)
+    {
+        for(Staff s:HotelDatabase.staffMembers)
+        {
+            if(s.getStaffID()==ID)  //using == as these are of primitive datatype
+                return s;
+        }
+        throw new IllegalArgumentException("Staff member not found");
+    }
+
+    public void addRoom(Room r)
     {
         if(r==null)
             throw new IllegalArgumentException("Room cannot be null");
-        //checking if new room id already exists before adding the new room (Validation)
+        //validating room id
         for(Room s:HotelDatabase.rooms)
         {
             if(s.getRoomId()==r.getRoomId())
@@ -25,7 +52,7 @@ public class Admin extends Staff
     }
     //method for removing a room by removing any object of room that has a specific id
     //if it was by Room the method would remove object reference not the room itself
-    public void removeRoom(int ID) throws Exception
+    public void removeRoom(int ID)
     {
         for(Room r:HotelDatabase.rooms)
         {
@@ -42,4 +69,12 @@ public class Admin extends Staff
         throw new IllegalArgumentException("Room not found");
     }
 
+    public void updateRoom(int ID,Room upd)
+    {
+        //assigning the existing room to the method that returns the room by searching for its id(stored in database)
+        Room existing=HotelDatabase.findRoomById(ID);
+        existing.setPrice(upd.getPrice());  //setting the new price of the existing room to the new room's price
+        existing.setRoomType(upd.getRoomType());    //...
+    }
+    
 }
