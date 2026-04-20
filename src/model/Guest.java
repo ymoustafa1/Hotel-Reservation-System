@@ -1,10 +1,12 @@
 package model;
 import java.time.*;
 import database.*;
+import service.AuthenticationService;
+
 import java.util.*;
 
 
-public class Guest extends AuthenticationService {
+public class Guest  {
     //defining all data fields with private access modifiers
     private String username;
     private String password;
@@ -12,7 +14,7 @@ public class Guest extends AuthenticationService {
     private double balance;
     private String address;
     private Gender gender;
-
+    public static int CurrentInvoiceID=1000;
     public Guest()
     {}
     public Guest(String username,String password ,LocalDate dateOfBirth,double balance,String address, Gender gender)
@@ -126,16 +128,17 @@ public class Guest extends AuthenticationService {
     //needs invoice from youssef postponed
     public void  checkout(Reservation res , PaymentMethod method )
     {
-
+     Invoice currentInvoice = new Invoice(CurrentInvoiceID++ , res , method);
+     currentInvoice.processPayment(this);
     }
-
+    // a value that will be deducted from Guest balance
     public void updateBalance(double amount) throws Exception
     {
-        if(this.balance+amount<0)
+        if(this.balance-amount<0)
         {
             throw new Exception("Insufficient Balance");
         }
-        this.balance+=amount;
+        this.balance-=amount;
     }
 }
 
