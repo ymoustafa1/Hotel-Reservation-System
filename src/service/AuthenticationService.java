@@ -1,6 +1,8 @@
-package model;
+package service;
 
 import database.HotelDatabase;
+import model.Guest;
+import model.Staff;
 
 public class AuthenticationService {
 

@@ -72,7 +72,7 @@ public class Invoice {
     }
 
     //change/accept payment from guest
-    public void processPayment(Guest g) throws Exception{
+    public void processPayment(Guest g) throws IllegalArgumentException{
         if (totalAmount == 0) {
             calculateTotal();
         }
