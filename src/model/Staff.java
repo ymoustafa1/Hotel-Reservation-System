@@ -1,6 +1,7 @@
 package model;
 
 import database.HotelDatabase;
+import util.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,16 +17,16 @@ abstract public class Staff
     private static int counter=0;
 
     protected Staff() {}
-    protected Staff(String username,String password,Role role) throws IllegalArgumentException
+    protected Staff(String username,String password,Role role)
     {
         if (username == null || username.isEmpty())
-            throw new IllegalArgumentException("Invalid username");
+            throw new InvalidInputException("Invalid username");
 
         if (password == null || password.length() < 6)
-            throw new IllegalArgumentException("Invalid password");
+            throw new InvalidInputException("Invalid password");
 
         if (role == null)
-            throw new IllegalArgumentException("Role required");
+            throw new InvalidInputException("Role required");
         this.username=username;
         this.password=password;
         this.role=role;
@@ -39,7 +40,7 @@ abstract public class Staff
     public void setWorkingHours(int hrs)
     {
         if (hrs <= 0 || hrs > 24)
-            throw new IllegalArgumentException("Invalid working hours");
+            throw new InvalidInputException("Invalid working hours");
 
         this.workingHrs = hrs;
     }
@@ -57,14 +58,13 @@ abstract public class Staff
     public ArrayList<Room> viewAllRooms(){return HotelDatabase.rooms;}
 
     //implementing a static method for the login process to be used by both subclasses
-    public static Staff login(String username, String password)
-    {
+    public static Staff login(String username, String password){
         for (Staff s : HotelDatabase.staffMembers)
         {
             if (s.getUsername().equals(username) && s.getPassword().equals(password))
                 return s;
         }
-        throw new IllegalArgumentException("Invalid username or password");
+        throw new AuthenticationException("Invalid username or password");
     }
 
     //method for viewing all reservations stored in database

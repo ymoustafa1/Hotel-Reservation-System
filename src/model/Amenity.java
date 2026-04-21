@@ -2,6 +2,8 @@ package model;
 import java.util.*;
 import java.time.*;
 import database.*;
+import util.InvalidInputException;
+import util.NegativeNumberException;
 
 public class Amenity {
     //defining all data fields with private access modifiers
@@ -10,15 +12,15 @@ public class Amenity {
     private double price;
 
     public Amenity(){}
-    public Amenity(String name, AmenityType type, double price) throws IllegalArgumentException {
+    public Amenity(String name, AmenityType type, double price){
         if (name == null || name.isEmpty())
-            throw new IllegalArgumentException("Invalid name");
+            throw new InvalidInputException("Invalid name");
 
         if (type == null)
-            throw new IllegalArgumentException("Type required");
+            throw new InvalidInputException("Type required");
 
         if (price < 0)
-            throw new IllegalArgumentException("Price cannot be negative");
+            throw new NegativeNumberException("Price cannot be negative");
 
         this.name = name;
         this.type = type;
@@ -33,20 +35,19 @@ public class Amenity {
     }
     public double getPrice(){return price;}
     //data methods setters
-    public void setName(String name) throws IllegalArgumentException {
+    public void setName(String name){
         if (name == null || name.isEmpty())
-            throw new IllegalArgumentException("Invalid name");
+            throw new InvalidInputException("Invalid name");
         this.name = name;
     }
-    public void setType(AmenityType Type) throws IllegalArgumentException {
+    public void setType(AmenityType Type) {
         if (type == null)
-            throw new IllegalArgumentException("Type required");
+            throw new InvalidInputException("Type required");
         this.type = Type;
     }
-    public void setPrice(double Price) throws  IllegalArgumentException
-    {
+    public void setPrice(double Price) {
         if (price < 0)
-            throw new IllegalArgumentException("Price cannot be negative");
+            throw new NegativeNumberException("Price cannot be negative");
         this.price = Price;
     }
 

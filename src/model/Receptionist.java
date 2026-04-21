@@ -1,6 +1,7 @@
 package model;
 
 import database.HotelDatabase;
+import util.InvalidInputException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,14 +18,14 @@ public class Receptionist extends Staff
     public void checkIn(Reservation r)
     {
         if(r==null)
-            throw new IllegalArgumentException("Reservation cant be null");
+            throw new InvalidInputException("Reservation cant be null");
         r.reserve();
     }
 
     public void checkOut(Reservation r)
     {
         if(r==null)
-            throw new IllegalArgumentException("Reservation cant be null");
+            throw new InvalidInputException("Reservation cant be null");
         r.complete();
     }
 }

@@ -1,6 +1,10 @@
 package model;
 
 import database.HotelDatabase;
+import util.InvalidInputException;
+import util.NotFoundException;
+import util.ReservationOrderException;
+import util.RoomRelatedException;
 
 import java.time.LocalDate;
 
@@ -12,24 +16,25 @@ public class Reservation {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private ReservationStatus status;
+    private static int count=1000;
 
     //constructor
-    public Reservation(Guest g, Room r, LocalDate in, LocalDate out) throws IllegalArgumentException
+    public Reservation(Guest g, Room r, LocalDate in, LocalDate out)
     {
         if (g == null || r == null || in == null || out == null) {
-            throw new IllegalArgumentException("Null values not allowed");
+            throw new InvalidInputException("Null values not allowed");
         }
         //assigning values
         this.guest = g;
         this.room = r;
         this.checkInDate = in;
         this.checkOutDate = out;
-        this.reservationId = HotelDatabase.reservations.size() + 1000;
+        this.reservationId = count++;
 
         //validating dates to ensure reservation dates are logically correct
         if (!validateDates())
         {
-            throw new IllegalArgumentException("Invalid dates.");
+            throw new InvalidInputException("Invalid dates.");
         }
         //defining room availability
         if (room.isAvailable(in, out))
@@ -37,7 +42,7 @@ public class Reservation {
             this.status = ReservationStatus.PENDING;
         }
         else
-            throw new IllegalArgumentException("Room not available.");
+            throw new NotFoundException("Room not available.");
     }
 
     public boolean validateDates()
@@ -89,26 +94,26 @@ public class Reservation {
     public void setStatus(ReservationStatus s) {this.status = s;}
 
     //logic methods for reservation status
-    public void cancel() throws IllegalArgumentException
+    public void cancel()
     {
         if (status == ReservationStatus.CANCELLED)
-            throw new IllegalArgumentException("Already cancelled");
+            throw new RoomRelatedException("Already cancelled");
         if(status==ReservationStatus.COMPLETED)
-            throw new IllegalArgumentException("Cannot cancel a completed reservation");
+            throw new ReservationOrderException("Cannot cancel a completed reservation");
         status = ReservationStatus.CANCELLED;
     }
 
-    public void reserve() throws IllegalArgumentException
+    public void reserve()
     {
         if(status!=ReservationStatus.PENDING)
-            throw new IllegalArgumentException("Reservation must be pending before getting reserved");
+            throw new ReservationOrderException("Reservation must be pending before getting reserved");
         status = ReservationStatus.RESERVED;
     }
 
-    public void complete() throws IllegalArgumentException
+    public void complete()
     {
         if(status!=ReservationStatus.RESERVED)
-            throw new IllegalArgumentException("Cannot complete a reservation without being reserved first");
+            throw new ReservationOrderException("Cannot complete a reservation without being reserved first");
         status = ReservationStatus.COMPLETED;
     }
 }

@@ -150,19 +150,7 @@ public class HotelDatabase
         staffMembers.add(s2);
         staffMembers.add(s1);
 
-        //RESERVATIONS
-        Reservation res1 = new Reservation(g1, r1, LocalDate.now().plusDays(1), LocalDate.now().plusDays(3));
-        Reservation res2 = new Reservation(g2, r2, LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
 
-        reservations.add(res1);
-        reservations.add(res2);
-
-        //INVOICES
-        Invoice inv1 = new Invoice(1001, res1, PaymentMethod.CASH);
-        Invoice inv2 = new Invoice(1002, res2, PaymentMethod.CREDIT_CARD);
-
-        inv1.processPayment(g1, PaymentMethod.CASH);
-        inv2.processPayment(g2, PaymentMethod.CREDIT_CARD);
 
     }
 }
