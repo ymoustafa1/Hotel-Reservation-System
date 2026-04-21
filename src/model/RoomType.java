@@ -31,9 +31,13 @@ public class RoomType{
     }
     //data methods setters
     public void setBasePrice(double basePrice){
+        if (basePrice < 0)
+            throw new IllegalArgumentException("base price can't be negative");
         this.basePrice = basePrice ;
     }
     public void setName(String name){
+        if (name == null || name.isEmpty())
+            throw new IllegalArgumentException("Room type can't be empty");
         this.name= name ;
     }
 

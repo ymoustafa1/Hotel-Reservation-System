@@ -2,5 +2,5 @@ package model;
 
 public enum PaymentMethod {
     CASH,
-    CARD
+    CREDIT_CARD
 }

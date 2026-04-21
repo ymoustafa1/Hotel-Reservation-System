@@ -19,6 +19,14 @@ public class Guest  {
     {}
     public Guest(String username,String password ,LocalDate dateOfBirth,double balance,String address, Gender gender)
     {
+        if (username == null || username.isEmpty())
+            throw new IllegalArgumentException("Invalid username");
+
+        if (password == null || password.length() < 6)
+            throw new IllegalArgumentException("Invalid password");
+
+        if (balance < 0)
+            throw new IllegalArgumentException("Balance cannot be negative");
         this.username=username;
         this.password=password;
         this.dateOfBirth=dateOfBirth;
@@ -97,46 +105,51 @@ public class Guest  {
         return AuthenticationService.login(this.username,this.password);
     }
     //method for viewing the available rooms only by calling the list of availableRooms stored in the database class
-    public ArrayList<Room> viewAvailableRooms(LocalDate start , LocalDate end)
+    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end)
     {
-        return HotelDatabase.availableRooms;
+        ArrayList<Room> availableRooms = new ArrayList<>();
+
+        for (Room r : HotelDatabase.rooms)
+        {
+            if (r.isAvailable(start, end))
+            {
+                availableRooms.add(r);
+            }
+        }
+
+        return availableRooms;
     }
 
 
-    public void makeReservation(Room room , LocalDate start , LocalDate end) throws Exception
+    public void makeReservation(Room room , LocalDate start , LocalDate end) throws IllegalArgumentException
     {
+        if (room == null || start == null || end == null) {
+            throw new IllegalArgumentException("Null values not allowed");
+        }
         Reservation reservation = new Reservation(this ,room, start , end);
-        //validates dates of reservation throws exception if dates not vaild
-        if(!reservation.validateDates())
-            throw new Exception("Dates are not vaild");
-        //checks if room available throws exception if not available
-        if(!room.isAvailable(start,end))
-            throw new Exception("Room not available");
-
         HotelDatabase.reservations.add(reservation);
     }
 
-    public void cancelReservation(Reservation res) throws Exception
+    public void cancelReservation(Reservation res) throws IllegalArgumentException
     {
         //checks if same guest before cancelling
         if(!this.username.equals((res.getGuest()).getUsername())) {
-            throw new Exception("Cannot Cancel Reservation");
+            throw new IllegalArgumentException("Cannot Cancel Reservation");
         }
         res.cancel();
         HotelDatabase.reservations.remove(res);
     }
-    //needs invoice from youssef postponed
     public void  checkout(Reservation res , PaymentMethod method )
     {
      Invoice currentInvoice = new Invoice(CurrentInvoiceID++ , res , method);
-     currentInvoice.processPayment(this);
+     currentInvoice.processPayment(this, method);
     }
     // a value that will be deducted from Guest balance
-    public void updateBalance(double amount) throws Exception
+    public void updateBalance(double amount) throws IllegalArgumentException
     {
         if(this.balance-amount<0)
         {
-            throw new Exception("Insufficient Balance");
+            throw new IllegalArgumentException("Insufficient Balance");
         }
         this.balance-=amount;
     }

@@ -3,9 +3,10 @@ package model;
 import java.time.*;
 import database.*;
 import java.util.*;
+import util.*;
 
 
-public class Invoice {
+public class Invoice implements Payable{
     private int invoiceId;
     private Reservation reservation;
     private double totalAmount;
@@ -31,7 +32,7 @@ public class Invoice {
     public Reservation getReservation() {
         return reservation;
     }
-    public void setReservation(){
+    public void setReservation(Reservation reservation){
         this.reservation = reservation;
     }
     public double getTotalAmount() {
@@ -54,7 +55,10 @@ public class Invoice {
     }
 
     // calculate total based on days reserved
-    public double calculateTotal(){
+    public double calculateTotal() throws  IllegalArgumentException{
+        if (reservation == null) {
+            throw new IllegalArgumentException("Reservation cannot be null");
+        }
 
         LocalDate start = reservation.getCheckInDate();
         LocalDate end = reservation.getCheckOutDate();
@@ -72,7 +76,16 @@ public class Invoice {
     }
 
     //change/accept payment from guest
-    public void processPayment(Guest g) throws IllegalArgumentException{
+    public void processPayment(Guest g, PaymentMethod method) throws IllegalArgumentException{
+
+        if (reservation == null) {
+            throw new IllegalArgumentException("Reservation cannot be null");
+        }
+
+        if (g == null) {
+            throw new IllegalArgumentException("Guest cannot be null");
+        }
+
         if (totalAmount == 0) {
             calculateTotal();
         }
@@ -85,7 +98,7 @@ public class Invoice {
                 HotelDatabase.invoices.add(this);
                 break;
 
-            case CARD:
+            case CREDIT_CARD:
                 if (g.getBalance() >= totalAmount) {
                     g.setBalance(g.getBalance() - totalAmount);
                     paymentDate = LocalDate.now();
