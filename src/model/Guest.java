@@ -2,6 +2,10 @@ package model;
 import java.time.*;
 import database.*;
 import service.AuthenticationService;
+import util.AuthenticationException;
+import util.InsufficientBalanceException;
+import util.InvalidInputException;
+import util.NegativeNumberException;
 
 import java.util.*;
 
@@ -20,13 +24,13 @@ public class Guest  {
     public Guest(String username,String password ,LocalDate dateOfBirth,double balance,String address, Gender gender)
     {
         if (username == null || username.isEmpty())
-            throw new IllegalArgumentException("Invalid username");
+            throw new InvalidInputException("Invalid username");
 
         if (password == null || password.length() < 6)
-            throw new IllegalArgumentException("Invalid password");
+            throw new InvalidInputException("Invalid password");
 
         if (balance < 0)
-            throw new IllegalArgumentException("Balance cannot be negative");
+            throw new NegativeNumberException("Balance cannot be negative");
         this.username=username;
         this.password=password;
         this.dateOfBirth=dateOfBirth;
@@ -85,14 +89,14 @@ public class Guest  {
     }
 
     //register method throws exception in the case of duplicated username else adds guest to Hotel Database
-    public void register() throws Exception
+    public void register()
     {
 
         AuthenticationService.isUsernameUnique(this.username);
 
             if(password.length()<6)
             {
-                throw new Exception("Very short Password");
+                throw new AuthenticationException("Very short Password");
             }
 
             HotelDatabase.guests.add(this);
@@ -121,20 +125,35 @@ public class Guest  {
     }
 
 
-    public void makeReservation(Room room , LocalDate start , LocalDate end) throws IllegalArgumentException
+    public void makeReservation(Room room , LocalDate start , LocalDate end)
     {
         if (room == null || start == null || end == null) {
-            throw new IllegalArgumentException("Null values not allowed");
+            throw new InvalidInputException("Null values not allowed");
         }
         Reservation reservation = new Reservation(this ,room, start , end);
         HotelDatabase.reservations.add(reservation);
     }
 
-    public void cancelReservation(Reservation res) throws IllegalArgumentException
+    public ArrayList<Reservation> viewMyReservations()
+    {
+        ArrayList<Reservation> result = new ArrayList<>();
+
+        for (Reservation r : HotelDatabase.reservations)
+        {
+            if (r.getGuest().getUsername().equals(this.username))
+            {
+                result.add(r);
+            }
+        }
+
+        return result;
+    }
+
+    public void cancelReservation(Reservation res)
     {
         //checks if same guest before cancelling
         if(!this.username.equals((res.getGuest()).getUsername())) {
-            throw new IllegalArgumentException("Cannot Cancel Reservation");
+            throw new AuthenticationException("Cannot Cancel Reservation");
         }
         res.cancel();
         HotelDatabase.reservations.remove(res);
@@ -145,11 +164,11 @@ public class Guest  {
      currentInvoice.processPayment(this, method);
     }
     // a value that will be deducted from Guest balance
-    public void updateBalance(double amount) throws IllegalArgumentException
+    public void updateBalance(double amount)
     {
         if(this.balance-amount<0)
         {
-            throw new IllegalArgumentException("Insufficient Balance");
+            throw new InsufficientBalanceException("Insufficient Balance");
         }
         this.balance-=amount;
     }

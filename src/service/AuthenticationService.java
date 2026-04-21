@@ -2,6 +2,7 @@ package service;
 
 import database.HotelDatabase;
 import model.*;
+import util.*;
 
 
 public class AuthenticationService {
@@ -21,19 +22,19 @@ public class AuthenticationService {
                 return s;
             }
         }
-        return null;
+        throw new AuthenticationException("Invalid username or password");
     }
 
-    public  static   void isUsernameUnique(String username) throws IllegalArgumentException
+    public  static   void isUsernameUnique(String username)
     {
         if((HotelDatabase.findGuest(username))!=null)
         {
-            throw new IllegalArgumentException("username already exists");
+            throw new AlreadyExistsException("username already exists");
         }
         for(Staff s : HotelDatabase.staffMembers)
         {
             if(username.equals(s.getUsername())){
-                throw new IllegalArgumentException("username already exists");
+                throw new AlreadyExistsException("username already exists");
             }
         }
     }

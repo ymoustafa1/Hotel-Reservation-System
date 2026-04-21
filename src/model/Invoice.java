@@ -55,9 +55,9 @@ public class Invoice implements Payable{
     }
 
     // calculate total based on days reserved
-    public double calculateTotal() throws  IllegalArgumentException{
+    public double calculateTotal(){
         if (reservation == null) {
-            throw new IllegalArgumentException("Reservation cannot be null");
+            throw new InvalidInputException("Reservation cannot be null");
         }
 
         LocalDate start = reservation.getCheckInDate();
@@ -66,7 +66,7 @@ public class Invoice implements Payable{
         long days = end.toEpochDay() - start.toEpochDay();
 
         if (days <= 0) {
-            throw new RuntimeException("Invalid reservation duration");
+            throw new NegativeNumberException("Invalid reservation duration");
         }
 
         double price= reservation.getRoom().getPrice();
@@ -76,14 +76,14 @@ public class Invoice implements Payable{
     }
 
     //change/accept payment from guest
-    public void processPayment(Guest g, PaymentMethod method) throws IllegalArgumentException{
+    public void processPayment(Guest g, PaymentMethod method){
 
         if (reservation == null) {
-            throw new IllegalArgumentException("Reservation cannot be null");
+            throw new InvalidInputException("Reservation cannot be null");
         }
 
         if (g == null) {
-            throw new IllegalArgumentException("Guest cannot be null");
+            throw new InvalidInputException("Guest cannot be null");
         }
 
         if (totalAmount == 0) {
@@ -104,7 +104,7 @@ public class Invoice implements Payable{
                     paymentDate = LocalDate.now();
                     HotelDatabase.invoices.add(this);
                 } else {
-                    throw new IllegalArgumentException("Insufficient balance");
+                    throw new InsufficientBalanceException("Insufficient balance");
                 }
                 break;
 
