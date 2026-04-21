@@ -10,9 +10,18 @@ public class Amenity {
     private double price;
 
     public Amenity(){}
-    public Amenity(String name,AmenityType Type, double price){
+    public Amenity(String name, AmenityType type, double price) throws IllegalArgumentException {
+        if (name == null || name.isEmpty())
+            throw new IllegalArgumentException("Invalid name");
+
+        if (type == null)
+            throw new IllegalArgumentException("Type required");
+
+        if (price < 0)
+            throw new IllegalArgumentException("Price cannot be negative");
+
         this.name = name;
-        this.type= Type;
+        this.type = type;
         this.price = price;
     }
     //data methods getters
@@ -24,12 +33,35 @@ public class Amenity {
     }
     public double getPrice(){return price;}
     //data methods setters
-    public void setName(String name){
+    public void setName(String name) throws IllegalArgumentException {
+        if (name == null || name.isEmpty())
+            throw new IllegalArgumentException("Invalid name");
         this.name = name;
     }
-    public void setType(AmenityType Type){
+    public void setType(AmenityType Type) throws IllegalArgumentException {
+        if (type == null)
+            throw new IllegalArgumentException("Type required");
         this.type = Type;
     }
-    public void setPrice(double Price){this.price = Price;}
+    public void setPrice(double Price) throws  IllegalArgumentException
+    {
+        if (price < 0)
+            throw new IllegalArgumentException("Price cannot be negative");
+        this.price = Price;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Amenity)) return false;
+
+        Amenity a = (Amenity) o;
+        return this.name.equalsIgnoreCase(a.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.toLowerCase().hashCode();
+    }
 
 }

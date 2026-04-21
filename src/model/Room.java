@@ -9,7 +9,9 @@ public class Room {
     private ArrayList<Amenity> amenities;
     private double price;
 
-    public Room(int roomId, RoomType roomType) {
+    public Room(int roomId, RoomType roomType) throws IllegalArgumentException {
+        if (roomType == null)
+            throw new IllegalArgumentException("RoomType cannot be null");
         this.roomId = roomId;
         this.roomType = roomType;
         this.price = roomType.getBasePrice();
@@ -32,15 +34,25 @@ public class Room {
         return roomId;
     }
     //data methods setters
-    public void setRoomType(RoomType roomType) {this.roomType = roomType;}
-    public void setPrice (double price){
+    public void setRoomType(RoomType roomType) throws IllegalArgumentException {
+        if (roomType == null)
+        throw new IllegalArgumentException("RoomType cannot be null");
+        this.roomType = roomType;
+    }
+    public void setPrice (double price) throws IllegalArgumentException {
+        if (price < 0)
+            throw new IllegalArgumentException("Price cannot be negative");
         this.price= price;
     }
     public void setRoomId(int roomId){
         this.roomId= roomId;
     }
     //checks reservation for specific room in specific dates
-    public boolean isAvailable(LocalDate start, LocalDate end) {
+    public boolean isAvailable(LocalDate start, LocalDate end) throws IllegalArgumentException {
+        if (start == null || end == null)
+            throw new IllegalArgumentException("Dates cannot be null");
+        if (!start.isBefore(end))
+            throw new IllegalArgumentException("Invalid date range");
         for (Reservation r : HotelDatabase.reservations) {
             if (r.getRoom().getRoomId() == this.roomId) {
                 //returns false if dates are already reserved

@@ -13,13 +13,12 @@ public class HotelDatabase
     public static ArrayList<RoomType> roomTypes = new ArrayList<>();
     public static ArrayList<Amenity> amenities = new ArrayList<>();
     public static ArrayList<Staff> staffMembers = new ArrayList<>();
-    public static ArrayList<Room> availableRooms = new ArrayList<>();
 
     private HotelDatabase() {}
 
     public static Guest findGuest(String username){
         for (Guest g: guests) {
-            if (g.getUsername().equals(username)) {
+            if (g.getUsername().equalsIgnoreCase(username)) {
                 return g;
             }
         }
@@ -28,7 +27,7 @@ public class HotelDatabase
 
     public static Staff findStaff(String username){
         for (Staff s: staffMembers) {
-            if (s.getUsername().equals(username)) {
+            if (s.getUsername().equalsIgnoreCase(username)) {
                 return s;
             }
         }
@@ -42,20 +41,6 @@ public class HotelDatabase
             }
         }
         return null;
-    }
-
-    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end)
-    {
-        /*searching in the whole list of rooms stored in database for available
-        rooms by calling the isAvailable method implemented in the class of Room*/
-        for(Room r :HotelDatabase.rooms)
-        {
-            if(r.isAvailable(start,end))
-            {
-                availableRooms.add(r);
-            }
-        }
-        return availableRooms;
     }
 
     public static Reservation findReservationById(int id){
@@ -96,7 +81,6 @@ public class HotelDatabase
         roomTypes.clear();
         amenities.clear();
         staffMembers.clear();
-        availableRooms.clear();
 
         //ROOM TYPES
         RoomType single = new RoomType("Single", 500);
@@ -162,12 +146,23 @@ public class HotelDatabase
 
         //STAFF
         Staff s1 = new Admin("admin1", "admin123");
+        Staff s2 = new Receptionist("rec1", "rec123");
+        staffMembers.add(s2);
         staffMembers.add(s1);
 
         //RESERVATIONS
+        Reservation res1 = new Reservation(g1, r1, LocalDate.now().plusDays(1), LocalDate.now().plusDays(3));
+        Reservation res2 = new Reservation(g2, r2, LocalDate.now().plusDays(2), LocalDate.now().plusDays(5));
 
+        reservations.add(res1);
+        reservations.add(res2);
 
         //INVOICES
+        Invoice inv1 = new Invoice(1001, res1, PaymentMethod.CASH);
+        Invoice inv2 = new Invoice(1002, res2, PaymentMethod.CREDIT_CARD);
+
+        inv1.processPayment(g1, PaymentMethod.CASH);
+        inv2.processPayment(g2, PaymentMethod.CREDIT_CARD);
 
     }
 }

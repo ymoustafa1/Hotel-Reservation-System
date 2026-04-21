@@ -1,8 +1,8 @@
 package service;
 
 import database.HotelDatabase;
-import model.Guest;
-import model.Staff;
+import model.*;
+
 
 public class AuthenticationService {
 
@@ -24,16 +24,16 @@ public class AuthenticationService {
         return null;
     }
 
-    public  static   void isUsernameUnique(String username) throws Exception
+    public  static   void isUsernameUnique(String username) throws IllegalArgumentException
     {
         if((HotelDatabase.findGuest(username))!=null)
         {
-            throw new Exception("username already exists");
+            throw new IllegalArgumentException("username already exists");
         }
         for(Staff s : HotelDatabase.staffMembers)
         {
             if(username.equals(s.getUsername())){
-                throw new Exception("username already exists");
+                throw new IllegalArgumentException("username already exists");
             }
         }
     }

@@ -16,8 +16,16 @@ abstract public class Staff
     private static int counter=0;
 
     protected Staff() {}
-    protected Staff(String username,String password,Role role)
+    protected Staff(String username,String password,Role role) throws IllegalArgumentException
     {
+        if (username == null || username.isEmpty())
+            throw new IllegalArgumentException("Invalid username");
+
+        if (password == null || password.length() < 6)
+            throw new IllegalArgumentException("Invalid password");
+
+        if (role == null)
+            throw new IllegalArgumentException("Role required");
         this.username=username;
         this.password=password;
         this.role=role;
@@ -30,13 +38,9 @@ abstract public class Staff
     //validating number of working hours for a staff member before setting it
     public void setWorkingHours(int hrs)
     {
-        if(this.role!=Role.ADMIN)
-            throw new IllegalArgumentException("Only admins can change working hrs");
-        //validating
-        if (hrs <= 0 || hrs > 24) {
+        if (hrs <= 0 || hrs > 24)
             throw new IllegalArgumentException("Invalid working hours");
-        }
-        //setting after validating
+
         this.workingHrs = hrs;
     }
 
@@ -72,7 +76,18 @@ abstract public class Staff
     }
 
     //method for viewing the available rooms only by calling the list of availableRooms stored in the database class
-    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end) {
-        return HotelDatabase.availableRooms;
+    public ArrayList<Room> viewAvailableRooms(LocalDate start, LocalDate end)
+    {
+        ArrayList<Room> availableRooms = new ArrayList<>();
+
+        for (Room r : HotelDatabase.rooms)
+        {
+            if (r.isAvailable(start, end))
+            {
+                availableRooms.add(r);
+            }
+        }
+
+        return availableRooms;
     }
 }
