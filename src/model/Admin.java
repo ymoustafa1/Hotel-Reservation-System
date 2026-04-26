@@ -24,13 +24,23 @@ public class Admin extends Staff {
     }
 
     public void addRoom(Room r){
-        //validating room
         if (r == null)
             throw new InvalidInputException("Room cannot be null");
+
         for (Room s : HotelDatabase.rooms) {
             if (s.getRoomId() == r.getRoomId())
                 throw new AlreadyExistsException("Room ID already exists");
         }
+
+        if (r.getRoomType() != null)
+        {
+            for (Amenity a : r.getRoomType().getAmenities())
+            {
+                if (!r.getAmenities().contains(a))
+                    r.addAmenity(a);
+            }
+        }
+
         HotelDatabase.rooms.add(r);
     }
 
@@ -75,9 +85,12 @@ public class Admin extends Staff {
 
     public void deleteRoomType(String name){
         for (int i = 0; i < HotelDatabase.roomTypes.size(); i++) {
-            RoomType m = HotelDatabase.roomTypes.get(i);
-            //comparing name entered by user with names of room types stored in database(case insensitive)
-            if (m.getName().equalsIgnoreCase(name)) {
+            RoomType rt = HotelDatabase.roomTypes.get(i);
+            if (rt.getName().equalsIgnoreCase(name)) {
+                for (Room r : HotelDatabase.rooms) {
+                    if (r.getRoomType().getName().equalsIgnoreCase(name))
+                        throw new RoomRelatedException("Room type is used by existing rooms");
+                }
                 HotelDatabase.roomTypes.remove(i);
                 return;
             }

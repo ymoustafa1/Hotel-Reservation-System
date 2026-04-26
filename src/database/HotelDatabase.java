@@ -51,6 +51,21 @@ public class HotelDatabase
         }
         return null;
     }
+
+    public static ArrayList<Reservation> findReservationsByGuest(Guest g)
+    {
+        ArrayList<Reservation> result = new ArrayList<>();
+
+        for (Reservation r : reservations)
+        {
+            if (r.getGuest().equals(g))
+            {
+                result.add(r);
+            }
+        }
+
+        return result;
+    }
     public static RoomType findRoomType(String name){
         for (RoomType r: roomTypes) {
             if (r.getName().equalsIgnoreCase(name)) {
@@ -69,11 +84,15 @@ public class HotelDatabase
         return null;
     }
 
+    public static boolean validateDates(LocalDate checkInDate, LocalDate checkOutDate)
+    {
+        return checkInDate.isBefore(checkOutDate);
+    }
+
 
 
     public static void initializeDummyData() {
 
-        //Clear Old Data
         guests.clear();
         rooms.clear();
         reservations.clear();
@@ -81,25 +100,16 @@ public class HotelDatabase
         roomTypes.clear();
         amenities.clear();
         staffMembers.clear();
+        Reservation.resetCounter();
 
-        //ROOM TYPES
-        RoomType single = new RoomType("Single", 500);
-        RoomType doubleRoom = new RoomType("Double", 800);
-        RoomType suite = new RoomType("Suite", 1500);
-
-        roomTypes.add(single);
-        roomTypes.add(doubleRoom);
-        roomTypes.add(suite);
-
-        //AMENITIES
-        Amenity wifi = new Amenity("WiFi", AmenityType.Room, 100);
-        Amenity ac = new Amenity("AC", AmenityType.Room, 150);
-        Amenity tv = new Amenity("TV", AmenityType.Room, 300);
-        Amenity minibar = new Amenity("MiniBar", AmenityType.Room, 550);
-        Amenity spa = new Amenity("Spa", AmenityType.Hotel, 1000);
-        Amenity pool = new Amenity("Pool", AmenityType.Hotel, 870);
-        Amenity gym = new Amenity("Gym", AmenityType.Hotel, 560);
-        Amenity buffet = new Amenity("Lunch", AmenityType.Hotel, 300);
+        Amenity wifi    = new Amenity("WiFi",    AmenityType.ROOM,  100);
+        Amenity ac      = new Amenity("AC",      AmenityType.ROOM,  150);
+        Amenity tv      = new Amenity("TV",      AmenityType.ROOM,  300);
+        Amenity minibar = new Amenity("MiniBar", AmenityType.ROOM,  550);
+        Amenity spa     = new Amenity("Spa",     AmenityType.HOTEL, 1000);
+        Amenity pool    = new Amenity("Pool",    AmenityType.HOTEL, 870);
+        Amenity gym     = new Amenity("Gym",     AmenityType.HOTEL, 560);
+        Amenity buffet  = new Amenity("Lunch",   AmenityType.HOTEL, 300);
 
         amenities.add(wifi);
         amenities.add(ac);
@@ -110,47 +120,55 @@ public class HotelDatabase
         amenities.add(gym);
         amenities.add(buffet);
 
-        //ROOMS
+        RoomType single = new RoomType("Single", 500);
+        single.addAmenity(wifi);
+        single.addAmenity(ac);
+        single.addAmenity(buffet);
+
+        RoomType doubleRoom = new RoomType("Double", 800);
+        doubleRoom.addAmenity(wifi);
+        doubleRoom.addAmenity(tv);
+        doubleRoom.addAmenity(ac);
+        doubleRoom.addAmenity(buffet);
+        doubleRoom.addAmenity(spa);
+
+        RoomType suite = new RoomType("Suite", 1500);
+        suite.addAmenity(wifi);
+        suite.addAmenity(ac);
+        suite.addAmenity(tv);
+        suite.addAmenity(minibar);
+        suite.addAmenity(spa);
+        suite.addAmenity(gym);
+        suite.addAmenity(buffet);
+        suite.addAmenity(pool);
+
+        roomTypes.add(single);
+        roomTypes.add(doubleRoom);
+        roomTypes.add(suite);
+
         Room r1 = new Room(101, single);
-        r1.addAmenity(wifi);
-        r1.addAmenity(ac);
-        r1.addAmenity(buffet);
-
         Room r2 = new Room(102, doubleRoom);
-        r2.addAmenity(wifi);
-        r2.addAmenity(tv);
-        r2.addAmenity(ac);
-        r2.addAmenity(buffet);
-        r2.addAmenity(spa);
-
         Room r3 = new Room(201, suite);
-        r3.addAmenity(wifi);
-        r3.addAmenity(ac);
-        r3.addAmenity(tv);
-        r3.addAmenity(minibar);
-        r3.addAmenity(spa);
-        r3.addAmenity(gym);
-        r3.addAmenity(buffet);
-        r3.addAmenity(pool);
 
         rooms.add(r1);
         rooms.add(r2);
         rooms.add(r3);
 
-        //GUESTS
-        Guest g1 = new Guest("youssef", "12345678", LocalDate.of(2008, 4, 24),7000, "Cairo", Gender.MALE);
+        // GUESTS
+        Guest g1 = new Guest("youssef", "1", LocalDate.of(2008, 4, 24), 7000, "Cairo", Gender.MALE);
         Guest g2 = new Guest("kenzy", "12345678", LocalDate.of(2007, 6, 1), 7900, "Cairo", Gender.FEMALE);
 
         guests.add(g1);
         guests.add(g2);
 
-        //STAFF
+        // STAFF
         Staff s1 = new Admin("admin1", "admin123");
         Staff s2 = new Receptionist("rec1", "rec123");
-        staffMembers.add(s2);
         staffMembers.add(s1);
+        staffMembers.add(s2);
 
-
-
+        // RESERVATIONS
+        Reservation res1 = new Reservation(g2, r1, LocalDate.now(), LocalDate.now().plusDays(3));
+        reservations.add(res1);
     }
 }

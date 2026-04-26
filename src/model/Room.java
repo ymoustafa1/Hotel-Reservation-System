@@ -19,6 +19,8 @@ public class Room {
         this.roomType = roomType;
         this.price = roomType.getBasePrice();
         this.amenities = new ArrayList<>();
+        for (Amenity a : roomType.getAmenities())
+            this.amenities.add(a);
     }
     //adds amenity to the room and prevents duplicates
     public void addAmenity(Amenity a) {
@@ -29,6 +31,13 @@ public class Room {
     //removes specified amenities from the room
     public void removeAmenity(Amenity a) {
         amenities.remove(a);
+    }
+    public void syncAmenitiesFromRoomType() {
+        if (roomType == null) return;
+        amenities.clear();
+        for (Amenity a : roomType.getAmenities())
+            amenities.add(a);
+        this.price = roomType.getBasePrice();
     }
     //data methods getters
     public RoomType getRoomType(){return roomType;}
@@ -67,5 +76,12 @@ public class Room {
             }
         }
         return true;
+    }
+
+
+    @Override
+    public String toString() {
+        return "RoomID: " + roomId +
+                "\nRoomType: " + roomType + "\nPrice: " + price  + "\nAmenities: " + amenities+"\n\n";
     }
 }
