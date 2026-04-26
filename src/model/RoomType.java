@@ -10,6 +10,8 @@ public class RoomType{
     //defining all data fields with private access modifiers
     private String name;
     private double basePrice;
+    private ArrayList<Amenity> amenities;
+
 
     public RoomType(){
     }
@@ -24,6 +26,7 @@ public class RoomType{
         }
         this.name = name;
         this.basePrice = basePrice;
+        this.amenities = new ArrayList<>();
     }
     //data methods getters
     public double getBasePrice(){
@@ -32,6 +35,8 @@ public class RoomType{
     public String getName(){
         return name;
     }
+    public ArrayList<Amenity> getAmenities() {return amenities;}
+
     //data methods setters
     public void setBasePrice(double basePrice){
         if (basePrice < 0)
@@ -43,5 +48,21 @@ public class RoomType{
             throw new InvalidInputException("Room type can't be null");
         this.name= name ;
     }
+    public void setAmenities(ArrayList<Amenity> amenities){this.amenities = amenities;}
 
+    //adds amenity to the room and prevents duplicates
+    public void addAmenity(Amenity a) {
+        if (!amenities.contains(a)) {
+            amenities.add(a);
+        }
+    }
+    //removes specified amenities from the room
+    public void removeAmenity(Amenity a) {
+        amenities.remove(a);
+    }
+
+    @Override
+    public String toString(){
+        return name;
+    }
 }

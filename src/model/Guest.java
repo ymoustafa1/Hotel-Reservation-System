@@ -2,10 +2,7 @@ package model;
 import java.time.*;
 import database.*;
 import service.AuthenticationService;
-import util.AuthenticationException;
-import util.InsufficientBalanceException;
-import util.InvalidInputException;
-import util.NegativeNumberException;
+import util.*;
 
 import java.util.*;
 
@@ -26,11 +23,17 @@ public class Guest  {
         if (username == null || username.isEmpty())
             throw new InvalidInputException("Invalid username");
 
-        if (password == null || password.length() < 6)
+        if (password == null)
             throw new InvalidInputException("Invalid password");
 
         if (balance < 0)
             throw new NegativeNumberException("Balance cannot be negative");
+
+        if (dateOfBirth == null)
+            throw new InvalidInputException("Invalid date of birth");
+
+        if (address == null || address.isEmpty())
+            throw new InvalidInputException("Invalid address");
         this.username=username;
         this.password=password;
         this.dateOfBirth=dateOfBirth;
@@ -125,13 +128,14 @@ public class Guest  {
     }
 
 
-    public void makeReservation(Room room , LocalDate start , LocalDate end)
+    public Reservation makeReservation(Room room , LocalDate start , LocalDate end)
     {
         if (room == null || start == null || end == null) {
             throw new InvalidInputException("Null values not allowed");
         }
         Reservation reservation = new Reservation(this ,room, start , end);
         HotelDatabase.reservations.add(reservation);
+        return reservation;
     }
 
     public ArrayList<Reservation> viewMyReservations()
@@ -151,16 +155,26 @@ public class Guest  {
 
     public void cancelReservation(Reservation res)
     {
-        //checks if same guest before cancelling
-        if(!this.username.equals((res.getGuest()).getUsername())) {
+        if (!this.username.equals(res.getGuest().getUsername())) {
             throw new AuthenticationException("Cannot Cancel Reservation");
         }
+
+        // refund logic
+        Invoice inv = res.getInvoice();
+
+        if (inv != null && inv.getPaymentMethod() == PaymentMethod.CREDIT_CARD)
+        {
+            double amount = inv.getTotalAmount();
+            this.setBalance(this.getBalance() + amount);
+            System.out.println("Refunded: " + amount);
+        }
+
         res.cancel();
         HotelDatabase.reservations.remove(res);
     }
     public void  checkout(Reservation res , PaymentMethod method )
     {
-     Invoice currentInvoice = new Invoice(CurrentInvoiceID++ , res , method);
+     Invoice currentInvoice = new Invoice(res , method);
      currentInvoice.processPayment(this, method);
     }
     // a value that will be deducted from Guest balance
@@ -171,6 +185,27 @@ public class Guest  {
             throw new InsufficientBalanceException("Insufficient Balance");
         }
         this.balance-=amount;
+    }
+    @Override
+    public String toString() {
+        return "Username: " + username +
+                ", DOB: " + dateOfBirth +
+                ", Balance: " + balance +
+                ", Address: " + address +
+                ", Gender: " + gender;
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Guest)) return false;
+
+        Guest a = (Guest) o;
+        return this.username.equalsIgnoreCase(a.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return username.toLowerCase().hashCode();
     }
 }
 

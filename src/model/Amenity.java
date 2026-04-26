@@ -65,4 +65,8 @@ public class Amenity {
         return name.toLowerCase().hashCode();
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
 }
