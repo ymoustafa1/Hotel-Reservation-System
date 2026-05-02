@@ -207,5 +207,18 @@ public class Guest  {
     public int hashCode() {
         return username.toLowerCase().hashCode();
     }
+
+    public String gendertoString()
+    {
+        if(this.gender== Gender.MALE)
+        {
+            return "Male";
+        }
+        else
+        {
+            return "Female";
+        }
+    }
+
 }
 
