@@ -12,6 +12,7 @@ public class Main {
         Welcome();
     }
 
+
     static void Welcome(){
         Scanner input = new Scanner(System.in);
         int choice;
