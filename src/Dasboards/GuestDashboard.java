@@ -1,18 +1,19 @@
-package model;
+package Dasboards;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.image.*;
-import javafx.scene.*;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import model.Gender;
+import model.Guest;
+import model.Reservation;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class GuestDashboard extends Application {
     public  void start (Stage GuestDashboardStage)
     {
 
-        Image profileIcon = new Image(getClass().getResourceAsStream("/resources/profileIcon.png"));
+        Image profileIcon = new Image(getClass().getResourceAsStream("/profile_icon.jpg"));
         ImageView ProfileIcon = new ImageView(profileIcon);
         ProfileIcon.setPreserveRatio(true);
         ProfileIcon.setFitHeight(250);
@@ -61,7 +62,7 @@ public class GuestDashboard extends Application {
         guestDashboardPane.setHgap(10);
         guestDashboardPane.add(ProfileIcon,0,0);
         if (this.guest == null) {
-            this.guest = new Guest("Test Username","TestPassword",LocalDate.now(),123.4,"Test Address",Gender.MALE);
+            this.guest = new Guest("Test Username","TestPassword",LocalDate.now(),123.4,"Test Address", Gender.MALE);
         }
         balanceLabel.setText("Balance: " + guest.getBalance());
         guestDashboardPane.add(balanceLabel, 3, 0);
