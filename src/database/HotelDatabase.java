@@ -169,6 +169,7 @@ public class HotelDatabase
 
         // RESERVATIONS
         Reservation res1 = new Reservation(g2, r1, LocalDate.now(), LocalDate.now().plusDays(3));
+        res1.setStatus(ReservationStatus.RESERVED);
         reservations.add(res1);
     }
 }

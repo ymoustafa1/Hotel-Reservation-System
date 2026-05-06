@@ -152,6 +152,18 @@ public class Guest  {
 
         return result;
     }
+    public int  getReservationCnt()
+    {
+       int cnt =0;
+        for (Reservation r : HotelDatabase.reservations)
+        {
+            if (r.getGuest().getUsername().equals(this.username))
+            {
+                cnt++;
+            }
+        }
+        return  cnt;
+    }
 
     public void cancelReservation(Reservation res)
     {
