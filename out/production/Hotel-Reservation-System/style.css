@@ -1,0 +1,49 @@
+.sidebar {
+    -fx-background-color: ;
+    -fx-padding: 20;
+    -fx-spacing: 20;
+}
+.header {
+    -fx-padding: 15;
+    -fx-spacing: 20;
+}
+.header .label
+{
+    -fx-text-fill: white;
+    -fx-font-size: 35px;
+    -fx-font-family: "San Francisco";
+    -fx-font-weight: bold ;
+}
+
+
+
+.sidebar .label {
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-family: "San Francisco";
+    -fx-font-weight: bold ;
+}
+.root {
+    -fx-background-color: #F4F7F9;
+}
+.card {
+
+    -fx-background-color: #00008B;
+
+
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+
+    -fx-border-color: #00006B;
+    -fx-border-width: 1.5;
+    -fx-padding: 20;
+
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);
+}
+.card .label
+{
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-family: "San Francisco";
+    -fx-font-weight: bold ;
+}
