@@ -12,6 +12,7 @@ public class Main {
         Welcome();
     }
 
+
     static void Welcome(){
         Scanner input = new Scanner(System.in);
         int choice;
@@ -370,8 +371,7 @@ public class Main {
             }
         }}
     }
-    static void adminMenu(Admin admin)
-    {
+    static void adminMenu(Admin admin) {
         if (admin == null) throw new InvalidInputException("Invalid admin");
 
         Scanner input = new Scanner(System.in);
@@ -868,8 +868,7 @@ public class Main {
             }
         }
     }
-    static void receptionistMenu(Receptionist r)
-    {
+    static void receptionistMenu(Receptionist r) {
         if (r == null) throw new InvalidInputException("Invalid receptionist");
 
         Scanner input = new Scanner(System.in);

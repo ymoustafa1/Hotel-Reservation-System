@@ -152,6 +152,18 @@ public class Guest  {
 
         return result;
     }
+    public int  getReservationCnt()
+    {
+       int cnt =0;
+        for (Reservation r : HotelDatabase.reservations)
+        {
+            if (r.getGuest().getUsername().equals(this.username))
+            {
+                cnt++;
+            }
+        }
+        return  cnt;
+    }
 
     public void cancelReservation(Reservation res)
     {
@@ -207,5 +219,18 @@ public class Guest  {
     public int hashCode() {
         return username.toLowerCase().hashCode();
     }
+
+    public String gendertoString()
+    {
+        if(this.gender== Gender.MALE)
+        {
+            return "Male";
+        }
+        else
+        {
+            return "Female";
+        }
+    }
+
 }
 
