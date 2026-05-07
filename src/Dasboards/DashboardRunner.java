@@ -5,7 +5,7 @@ public class DashboardRunner{
         public static void main(String[] args) {
             // This trick tells JavaFX to launch your specific dashboard class
             // even though we are starting from this 'Runner' class.
-            GuestDashboard.launch(GuestDashboard.class , args);
+            RoomBrowseView.launch(RoomBrowseView.class , args);
         }
     }
 
