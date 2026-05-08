@@ -9,22 +9,12 @@ import javafx.stage.Stage;
 public class CreateReservationForm {
 
     public void showForm(){
-
         Stage stage = new Stage();
-
         VBox root = new VBox(15);
-
         root.setPadding(new Insets(20));
-
         Label title = new Label("Create Reservation");
-
-        title.setStyle(
-                "-fx-font-size: 24;" +
-                        "-fx-font-weight: bold;"
-        );
-
+        title.setStyle("-fx-font-size: 24;" + "-fx-font-weight: bold;");
         ComboBox<String> roomBox = new ComboBox<>();
-
         roomBox.getItems().addAll(
                 "Single Room",
                 "Deluxe Room",
@@ -33,34 +23,22 @@ public class CreateReservationForm {
         );
 
         roomBox.setPromptText("Select Room");
-
         DatePicker startDate = new DatePicker();
         startDate.setPromptText("Check In date");
         DatePicker endDate = new DatePicker();
         endDate.setPromptText("Check Out date");
         TextField guestsField = new TextField();
 
-        guestsField.setPromptText(
-                "Number of Guests"
-        );
+        guestsField.setPromptText("Number of Guests");
 
         Button createBtn = new Button("Create Reservation");
 
-        createBtn.setStyle(
-                "-fx-background-color: #16A34A;" +
-                        "-fx-text-fill: white;"
-        );
+        createBtn.setStyle("-fx-background-color: #16A34A;" + "-fx-text-fill: white;");
 
         createBtn.setOnAction(e -> {
-
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-            alert.setContentText(
-                    "Reservation Created Successfully!"
-            );
-
+            alert.setContentText("Reservation Created Successfully!");
             alert.show();
-
             stage.close();
         });
 
@@ -73,13 +51,9 @@ public class CreateReservationForm {
                 createBtn
         );
 
-        Scene scene =
-                new Scene(root,400,400);
-
+        Scene scene = new Scene(root,400,400);
         stage.setScene(scene);
-
         stage.setTitle("Create Reservation");
-
         stage.show();
     }
 }
