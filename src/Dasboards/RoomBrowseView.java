@@ -469,9 +469,22 @@ public class RoomBrowseView extends Application {
             imagePath = "/Suite.jpg";
         }
 
-        Image image = new Image(
-                getClass().getResourceAsStream(imagePath)
-        );
+        Image image;
+
+        try {
+
+            image = new Image(
+                    getClass().getResource(imagePath).toExternalForm()
+            );
+
+        }
+
+        catch (Exception e) {
+
+            image = new Image(
+                    getClass().getResource("/Single.jpg").toExternalForm()
+            );
+        }
 
         ImageView roomImage =
                 new ImageView(image);
