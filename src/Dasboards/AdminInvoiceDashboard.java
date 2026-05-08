@@ -17,11 +17,11 @@ import model.Invoice;
 
 import java.util.ArrayList;
 
-    public class InvoiceDashboard extends Application
+    public class AdminInvoiceDashboard extends Application
     {
         private Guest guest;
-        public InvoiceDashboard() {}
-        public InvoiceDashboard(Guest guest) { this.guest = guest; }
+        public AdminInvoiceDashboard() {}
+        public AdminInvoiceDashboard(Guest guest) { this.guest = guest; }
         @Override
         public void start(Stage stage)
         {

@@ -1,6 +1,8 @@
 package Dasboards;
 
+import app.SceneManager;
 import database.HotelDatabase;
+//import Dasboards.SupportDashboard;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,18 +11,21 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Gender;
 import model.Guest;
+import util.ErrorHandler;
+import util.SidebarGuest;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 
 public class UserProfileDashboard extends Application {
+
     private Guest guest;
-    private ArrayList<Control> allFields = new ArrayList<>();
 
     public UserProfileDashboard() {}
 
@@ -29,307 +34,359 @@ public class UserProfileDashboard extends Application {
     }
 
     @Override
-    public void start(Stage UserProfileStage) {
-        HotelDatabase.initializeDummyData();
-        if (this.guest == null) {
-            this.guest = HotelDatabase.findGuest("kenzy");
-        }
-        BorderPane userProfilePane = new BorderPane();
-        Scene userProfileScene = new Scene(userProfilePane, 1280, 800);
-        userProfilePane.requestFocus();
+    public void start(Stage stage) {
 
-        String cssPath = "/style.css";
-        var resource = getClass().getResource(cssPath);
-        if (resource != null) {
-            userProfileScene.getStylesheets().add(resource.toExternalForm());
-        }
+        BorderPane root = new BorderPane();
 
-        // --- Left Sidebar ---
-        VBox leftSwitcherText = new VBox();
-        leftSwitcherText.getStyleClass().addAll("sidebar");
-        leftSwitcherText.setSpacing(20);
-        leftSwitcherText.setPadding(new Insets(20));
-        leftSwitcherText.setStyle("-fx-background-color: #0F172A;");
+        Scene scene = new Scene(root, 1400, 850);
+        scene.getStylesheets().add(
+                getClass().getResource("/style.css").toExternalForm()
+        );
 
-        userProfilePane.setLeft(leftSwitcherText);
-        String[] sidebarLabels = {"Dashboard", "View Rooms", "Reservations", "Settings", "Invoices", "Profile"};
-        String[] iconPaths = {"/home.png", "/bed.png", "/calendar.png", "/setting.png", "/invoice.png", "/user2.png"};
+        root.setLeft(SidebarGuest.createSidebar("Profile"));
 
-        for (int i = 0; i < sidebarLabels.length; i++) {
-            addIconText(leftSwitcherText, sidebarLabels[i], iconPaths[i]);
-        }
-
-        Region sidebarSpacer = new Region();
-        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
-        leftSwitcherText.getChildren().add(sidebarSpacer);
-        addIconText(leftSwitcherText, "Logout", "/exit.png");
-
-        // --- Center Area (Scrollable) ---
-        VBox centerArea = new VBox();
+        VBox centerArea = new VBox(25);
         centerArea.getStyleClass().add("dashboard-pane");
         centerArea.setPadding(new Insets(30));
-        centerArea.setSpacing(25);
-        centerArea.setMaxWidth(1100);
 
-        VBox centeringWrapper = new VBox(centerArea);
-        centeringWrapper.setAlignment(Pos.TOP_CENTER);
-        centeringWrapper.setStyle("-fx-background-color: #F8FAFC;");
+        ScrollPane scroll = new ScrollPane(centerArea);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        ScrollPane mainScroll = new ScrollPane(centeringWrapper);
-        mainScroll.setFitToWidth(true);
-        mainScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-        userProfilePane.setCenter(mainScroll);
+        root.setCenter(scroll);
 
-        // --- Header ---
-        HBox headerBox = new HBox();
-        headerBox.setAlignment(Pos.CENTER_LEFT);
-        VBox welcomeLabels = new VBox();
-        Label welcomeLabel = new Label("User Profile");
-        welcomeLabel.getStyleClass().add("title-label");
-        Label subWelcomeLabel = new Label("Manage your Account Details and Preferences");
-        subWelcomeLabel.getStyleClass().add("subtitle-label");
-        welcomeLabels.getChildren().addAll(welcomeLabel, subWelcomeLabel);
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox headerTexts = new VBox(4);
+
+        Label title = new Label("User Profile");
+        title.getStyleClass().add("title-label");
+
+        Label sub = new Label("Manage your account information");
+        sub.getStyleClass().add("subtitle-label");
+
+        headerTexts.getChildren().addAll(title, sub);
 
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        HBox topRightDetails = new HBox(15);
-        topRightDetails.setAlignment(Pos.CENTER_RIGHT);
+        VBox dateBox = new VBox(2);
 
-        ImageView bellIcon = new ImageView(new Image(getClass().getResourceAsStream("/notification.png")));
-        bellIcon.setFitWidth(25);
-        bellIcon.setFitHeight(25);
+        Label date = new Label(
+                LocalDate.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy"))
+        );
 
-        VBox dateTimeBox = new VBox(4);
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
-        Label dateLabel = new Label(LocalDate.now().format(dateFormatter));
-        dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
-        Label timeLabel = new Label("Time: " + LocalDateTime.now().format(timeFormatter));
-        timeLabel.setStyle("-fx-text-fill: gray; -fx-font-size: 11px;");
-        dateTimeBox.getChildren().addAll(dateLabel, timeLabel);
+        Label time = new Label(
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"))
+        );
+        time.setStyle("-fx-text-fill: gray;");
 
-        topRightDetails.getChildren().addAll(bellIcon, dateTimeBox);
-        headerBox.getChildren().addAll(welcomeLabels, headerSpacer, topRightDetails);
-        centerArea.getChildren().add(headerBox);
+        dateBox.getChildren().addAll(date, time);
+        header.getChildren().addAll(headerTexts, headerSpacer, dateBox);
+        centerArea.getChildren().add(header);
 
-        // --- Profile Information Card ---
-        HBox profileInfoCard = new HBox();
-        profileInfoCard.getStyleClass().add("card");
-        profileInfoCard.setPadding(new Insets(30));
-        profileInfoCard.setSpacing(20);
-        profileInfoCard.setAlignment(Pos.CENTER_LEFT);
-        profileInfoCard.setMaxWidth(1100);
+        VBox profileCard = new VBox(25);
+        profileCard.getStyleClass().add("card");
+        profileCard.setStyle("-fx-cursor: default;");
+        profileCard.setPadding(new Insets(30));
 
-        VBox photoSection = new VBox(20);
-        photoSection.setAlignment(Pos.TOP_CENTER);
-        addIconTextBlack(photoSection, "Profile Picture", "/user2.png");
+        HBox topSection = new HBox(30);
+        topSection.setAlignment(Pos.CENTER_LEFT);
 
-        ImageView avatarView = new ImageView(new Image("/user2.png"));
-        avatarView.setFitWidth(150);
-        avatarView.setFitHeight(150);
-        avatarView.setPreserveRatio(true);
-
-        Label changePhotoLabel = new Label("Change Photo");
-        changePhotoLabel.getStyleClass().add("subtitle-label");
-        changePhotoLabel.setStyle("-fx-cursor: hand; -fx-text-fill: #1E3A5F;");
-        photoSection.getChildren().addAll(avatarView, changePhotoLabel);
-
-        VBox formSection = new VBox(20);
-        HBox.setHgrow(formSection, Priority.ALWAYS);
-
-        GridPane userInfoGrid = new GridPane();
-        userInfoGrid.setHgap(30);
-        userInfoGrid.setVgap(20);
-
-        String[] infoLabels = {"First Name", "Gender", "Address", "DOB"};
-        for (int i = 0; i < infoLabels.length; i++) {
-            addInfoToGrid(infoLabels[i], userInfoGrid, i);
+        Image avatarImage;
+        if (guest.getImagePath() != null) {
+            avatarImage = new Image(guest.getImagePath());
+        } else {
+            avatarImage = new Image(getClass().getResourceAsStream("/user2.png"));
         }
+
+        ImageView avatar = new ImageView(avatarImage);
+        avatar.setFitWidth(120);
+        avatar.setFitHeight(120);
+
+        VBox userTexts = new VBox(5);
+
+        Label uname = new Label(guest.getUsername());
+        uname.setStyle("-fx-font-size: 28; -fx-font-weight: bold;");
+
+        Label role = new Label("Guest");
+        role.setStyle("-fx-text-fill: #6B7280;");
+
+        userTexts.getChildren().addAll(uname, role);
+        topSection.getChildren().addAll(avatar, userTexts);
+
+        GridPane infoGrid = new GridPane();
+        infoGrid.setHgap(40);
+        infoGrid.setVgap(22);
+
+        addInfoRow(infoGrid, "Username", guest.getUsername(), 0);
+        addInfoRow(infoGrid, "Gender", guest.getGender().toString(), 1);
+        addInfoRow(infoGrid, "Address", guest.getAddress(), 2);
+        addInfoRow(infoGrid, "Date of Birth", guest.getDateOfBirth().toString(), 3);
 
         HBox actionRow = new HBox();
         actionRow.setAlignment(Pos.CENTER_RIGHT);
-        Button saveBtn = new Button("Save Changes");
-        saveBtn.getStyleClass().add("button");
-        saveBtn.setPrefWidth(150);
-        actionRow.getChildren().add(saveBtn);
 
-        formSection.getChildren().addAll(userInfoGrid, actionRow);
-        profileInfoCard.getChildren().addAll(photoSection, formSection);
-        centerArea.getChildren().add(profileInfoCard);
+        Button editBtn = new Button("Edit Profile");
+        editBtn.getStyleClass().add("button");
 
-        saveBtn.setOnMouseClicked(e -> {
+        actionRow.getChildren().add(editBtn);
+
+        profileCard.getChildren().addAll(topSection, infoGrid, actionRow);
+        centerArea.getChildren().add(profileCard);
+
+        VBox balanceCard = new VBox(15);
+        balanceCard.getStyleClass().add("card");
+        balanceCard.setStyle("-fx-cursor: default;");
+        balanceCard.setPadding(new Insets(30));
+
+        Label balanceTitle = new Label("Current Balance");
+        balanceTitle.getStyleClass().add("section-title");
+
+        Label balance = new Label("$" + String.format("%.2f", guest.getBalance()));
+        balance.setStyle("-fx-font-size: 42; -fx-font-weight: bold; -fx-text-fill: #166534;");
+
+        VBox balanceActions = new VBox(12);
+
+        Label addBalanceLabel = new Label("Add Balance");
+        addBalanceLabel.getStyleClass().add("section-title");
+
+        TextField addBalanceField = new TextField();
+        addBalanceField.setPromptText("Enter amount");
+
+        Button addBalanceBtn = new Button("Add Funds");
+        addBalanceBtn.getStyleClass().add("button");
+
+        addBalanceBtn.setOnAction(e -> {
             try {
-                guest.setUsername(((TextField) allFields.get(0)).getText());
-                guest.setGender(Gender.valueOf(((ComboBox<String>) allFields.get(1)).getValue().toUpperCase()));
-                guest.setAddress(((TextField) allFields.get(2)).getText());
-                String dobText = ((TextField) allFields.get(3)).getText();
-                guest.setDateOfBirth(LocalDate.parse(dobText, DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-                new Alert(Alert.AlertType.INFORMATION, "Profile updated successfully!").show();
-            } catch (Exception ex) {
-                new Alert(Alert.AlertType.ERROR, "Invalid data. Please use DD/MM/YYYY for dates.").show();
-            }
-        });
-
-        // --- Account Balance Section ---
-        VBox balanceArea = new VBox(20);
-        balanceArea.getStyleClass().add("card");
-        balanceArea.setPadding(new Insets(30));
-        balanceArea.setAlignment(Pos.CENTER_LEFT);
-        balanceArea.setMaxWidth(1100);
-        addIconTextBlack(balanceArea, "Account Balance", "/business.png");
-
-        VBox currentBalanceBox = new VBox(5);
-        currentBalanceBox.setAlignment(Pos.CENTER);
-        currentBalanceBox.setPadding(new Insets(20));
-        currentBalanceBox.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 15; -fx-border-color: #DCFCE7;");
-
-        Label currentBalanceText = new Label("Current Balance");
-        currentBalanceText.setStyle("-fx-text-fill: #15803D; -fx-font-size: 16px; -fx-font-weight: bold;");
-
-        Label amountLabel = new Label("$" + String.format("%.2f", guest.getBalance()));
-        amountLabel.setStyle("-fx-text-fill: #166534; -fx-font-size: 42px; -fx-font-weight: 900;");
-
-        Label availableLabel = new Label("Available to use");
-        availableLabel.setStyle("-fx-text-fill: #15803D; -fx-font-size: 14px; -fx-opacity: 0.8;");
-
-        currentBalanceBox.getChildren().addAll(currentBalanceText, amountLabel, availableLabel);
-        balanceArea.getChildren().add(currentBalanceBox);
-
-        Label addBalanceLabel = new Label("Quick Top-up");
-        addBalanceLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1E3A5F;");
-        balanceArea.getChildren().add(addBalanceLabel);
-
-        HBox options = new HBox(15);
-        String[] balanceAmountOptions = {"50", "100", "200", "500"};
-        for (String amt : balanceAmountOptions) {
-            createBalanceOptions("$" + amt, options, amountLabel);
-        }
-        balanceArea.getChildren().add(options);
-
-        HBox manualEntryRow = new HBox(15);
-        manualEntryRow.setAlignment(Pos.CENTER_LEFT);
-        TextField customAmountField = new TextField();
-        customAmountField.setPromptText("Enter custom amount");
-        customAmountField.setPrefWidth(250);
-        Button updateBalanceBtn = new Button("Update Balance");
-        updateBalanceBtn.getStyleClass().add("button");
-
-        updateBalanceBtn.setOnMouseClicked(e -> {
-            try {
-                double val = Double.parseDouble(customAmountField.getText());
-                if (val > 0) {
-                    guest.setBalance(guest.getBalance() + val);
-                    amountLabel.setText("$" + String.format("%.2f", guest.getBalance()));
-                    customAmountField.clear();
+                double amount = Double.parseDouble(addBalanceField.getText());
+                if (amount <= 0) {
+                    throw new IllegalArgumentException("Amount must be greater than 0.");
                 }
+                guest.setBalance(guest.getBalance() + amount);
+                balance.setText("$" + String.format("%.2f", guest.getBalance()));
+                addBalanceField.clear();
             } catch (Exception ex) {
-                new Alert(Alert.AlertType.ERROR, "Invalid amount entered.").show();
+                ex.printStackTrace();
             }
         });
-        manualEntryRow.getChildren().addAll(new Label("$"), customAmountField, updateBalanceBtn);
-        balanceArea.getChildren().add(manualEntryRow);
-        centerArea.getChildren().add(balanceArea);
 
-        // --- Customer Support Section ---
-        VBox supportArea = new VBox(15);
-        supportArea.getStyleClass().add("card");
-        supportArea.setPadding(new Insets(30));
-        supportArea.setMaxWidth(1100);
-        addIconTextBlack(supportArea, "Need Help?", "/notification.png");
+        balanceActions.getChildren().addAll(addBalanceLabel, addBalanceField, addBalanceBtn);
+        balanceCard.getChildren().addAll(balanceTitle, balance, balanceActions);
+        centerArea.getChildren().add(balanceCard);
 
-        HBox supportContent = new HBox(20);
-        supportContent.setAlignment(Pos.CENTER_LEFT);
-        VBox supportTexts = new VBox(5);
-        Label supportTitle = new Label("24/7 Customer Support");
-        supportTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px;");
-        Label supportSub = new Label("Our team is here to assist you with any inquiries or issues.");
+        VBox supportCard = new VBox(15);
+        supportCard.getStyleClass().add("card");
+        supportCard.setStyle("-fx-cursor: default;");
+        supportCard.setPadding(new Insets(30));
+
+        Label supportTitle = new Label("Need Help?");
+        supportTitle.getStyleClass().add("section-title");
+
+        Label supportSub = new Label("Chat with our support team anytime.");
         supportSub.getStyleClass().add("subtitle-label");
-        supportTexts.getChildren().addAll(supportTitle, supportSub);
 
-        Region supportSpacer = new Region();
-        HBox.setHgrow(supportSpacer, Priority.ALWAYS);
-        Button contactBtn = new Button("Contact Support");
-        contactBtn.getStyleClass().add("button");
-        contactBtn.setStyle("-fx-background-color: #0F172A;");
+        Button supportBtn = new Button("Open Chat Support");
+        supportBtn.getStyleClass().add("button");
+//        supportBtn.setOnAction(e -> SceneManager.switchToDashboard(new SupportDashboard(guest)));
 
-        supportContent.getChildren().addAll(supportTexts, supportSpacer, contactBtn);
-        supportArea.getChildren().add(supportContent);
-        centerArea.getChildren().add(supportArea);
+        supportCard.getChildren().addAll(supportTitle, supportSub, supportBtn);
+        centerArea.getChildren().add(supportCard);
 
-        UserProfileStage.setScene(userProfileScene);
-        UserProfileStage.setMaximized(true);
-        UserProfileStage.setTitle("User Profile Dashboard");
-        UserProfileStage.show();
-    }
+        editBtn.setOnAction(e -> {
+            Stage popup = new Stage();
 
-    void createBalanceOptions(String amount, Pane pane, Label amountLabel) {
-        Button option = new Button(amount);
-        option.getStyleClass().add("button");
-        option.setPrefWidth(100);
-        option.setOnMouseClicked(e -> {
-            double addAmount = Double.parseDouble(amount.replace("$", ""));
-            guest.setBalance(guest.getBalance() + addAmount);
-            amountLabel.setText("$" + String.format("%.2f", guest.getBalance()));
+            VBox popupRoot = new VBox(16);
+            popupRoot.setPadding(new Insets(25));
+            popupRoot.getStyleClass().add("card");
+
+            VBox errorBox = new VBox();
+            errorBox.setVisible(false);
+            errorBox.setManaged(false);
+            errorBox.getStyleClass().add("error-box");
+
+            Label errorLabel = new Label();
+            errorLabel.getStyleClass().add("error-label");
+            errorBox.getChildren().add(errorLabel);
+
+            TextField usernameField = new TextField(guest.getUsername());
+            TextField addressField = new TextField(guest.getAddress());
+
+            PasswordField passwordField = new PasswordField();
+            passwordField.setPromptText("New Password");
+
+            TextField visiblePasswordField = new TextField();
+            visiblePasswordField.setManaged(false);
+            visiblePasswordField.setVisible(false);
+            visiblePasswordField.setPromptText("New Password");
+
+            PasswordField confirmPasswordField = new PasswordField();
+            confirmPasswordField.setPromptText("Confirm Password");
+
+            TextField visibleConfirmField = new TextField();
+            visibleConfirmField.setManaged(false);
+            visibleConfirmField.setVisible(false);
+            visibleConfirmField.setPromptText("Confirm Password");
+
+            Button togglePassBtn = new Button("👁");
+            togglePassBtn.getStyleClass().add("secondary-button");
+
+            Button toggleConfirmBtn = new Button("👁");
+            toggleConfirmBtn.getStyleClass().add("secondary-button");
+
+            togglePassBtn.setOnAction(e2 -> {
+                if (passwordField.isVisible()) {
+                    visiblePasswordField.setText(passwordField.getText());
+                    passwordField.setVisible(false);
+                    passwordField.setManaged(false);
+                    visiblePasswordField.setVisible(true);
+                    visiblePasswordField.setManaged(true);
+                    togglePassBtn.setText("✖");
+                } else {
+                    passwordField.setText(visiblePasswordField.getText());
+                    visiblePasswordField.setVisible(false);
+                    visiblePasswordField.setManaged(false);
+                    passwordField.setVisible(true);
+                    passwordField.setManaged(true);
+                    togglePassBtn.setText("👁");
+                }
+            });
+
+            toggleConfirmBtn.setOnAction(e2 -> {
+                if (confirmPasswordField.isVisible()) {
+                    visibleConfirmField.setText(confirmPasswordField.getText());
+                    confirmPasswordField.setVisible(false);
+                    confirmPasswordField.setManaged(false);
+                    visibleConfirmField.setVisible(true);
+                    visibleConfirmField.setManaged(true);
+                    toggleConfirmBtn.setText("✖");
+                } else {
+                    confirmPasswordField.setText(visibleConfirmField.getText());
+                    visibleConfirmField.setVisible(false);
+                    visibleConfirmField.setManaged(false);
+                    confirmPasswordField.setVisible(true);
+                    confirmPasswordField.setManaged(true);
+                    toggleConfirmBtn.setText("👁");
+                }
+            });
+
+            DatePicker dobPicker = new DatePicker(guest.getDateOfBirth());
+            dobPicker.setEditable(false);
+
+            ComboBox<Gender> genderBox = new ComboBox<>();
+            genderBox.getItems().addAll(Gender.values());
+            genderBox.setValue(guest.getGender());
+
+            Button uploadBtn = new Button("Upload Image");
+            uploadBtn.getStyleClass().add("button");
+
+            Label imageLabel = new Label(
+                    guest.getImagePath() != null ? "Image Selected" : "No Image"
+            );
+
+            uploadBtn.setOnAction(ev -> {
+                FileChooser fc = new FileChooser();
+                File file = fc.showOpenDialog(popup);
+                if (file != null) {
+                    guest.setImagePath(file.toURI().toString());
+                    imageLabel.setText("Image Uploaded");
+                }
+            });
+
+            Button saveBtn = new Button("Save Changes");
+            saveBtn.getStyleClass().add("button");
+
+            saveBtn.setOnAction(ev -> {
+                try {
+                    ErrorHandler.hideError(errorBox);
+
+                    if (usernameField.getText().isBlank()
+                            || addressField.getText().isBlank()
+                            || dobPicker.getValue() == null
+                            || genderBox.getValue() == null) {
+                        throw new IllegalArgumentException("Please fill all fields.");
+                    }
+
+                    if (!dobPicker.getValue().isBefore(LocalDate.now())) {
+                        throw new IllegalArgumentException("Date of birth must be before today.");
+                    }
+
+                    String newPassword = passwordField.isVisible()
+                            ? passwordField.getText()
+                            : visiblePasswordField.getText();
+
+                    String confirmPassword = confirmPasswordField.isVisible()
+                            ? confirmPasswordField.getText()
+                            : visibleConfirmField.getText();
+
+                    if (!newPassword.isBlank()) {
+                        if (newPassword.length() < 6) {
+                            throw new IllegalArgumentException("Password must be at least 6 characters.");
+                        }
+                        if (!newPassword.equals(confirmPassword)) {
+                            throw new IllegalArgumentException("Passwords do not match.");
+                        }
+                        guest.setPassword(newPassword);
+                    }
+
+                    guest.setUsername(usernameField.getText());
+                    guest.setAddress(addressField.getText());
+                    guest.setGender(genderBox.getValue());
+                    guest.setDateOfBirth(dobPicker.getValue());
+
+                    popup.close();
+                    start(stage);
+
+                } catch (Exception ex) {
+                    ErrorHandler.showError(errorBox, errorLabel, ex.getMessage());
+                }
+            });
+
+            popupRoot.getChildren().addAll(
+                    errorBox,
+                    new Label("Username"), usernameField,
+                    new Label("Address"), addressField,
+                    new Label("New Password"),
+                    new HBox(10, passwordField, visiblePasswordField, togglePassBtn),
+                    new Label("Confirm Password"),
+                    new HBox(10, confirmPasswordField, visibleConfirmField, toggleConfirmBtn),
+                    new Label("Date of Birth"), dobPicker,
+                    new Label("Gender"), genderBox,
+                    uploadBtn, imageLabel,
+                    saveBtn
+            );
+
+            ScrollPane popupScroll = new ScrollPane(popupRoot);
+            popupScroll.setFitToWidth(true);
+            popupScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            popupScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+            Scene popupScene = new Scene(popupScroll, 450, 700);
+            popupScene.getStylesheets().add(
+                    getClass().getResource("/style.css").toExternalForm()
+            );
+
+            popup.setScene(popupScene);
+            popup.setResizable(false);
+            popup.show();
         });
-        pane.getChildren().add(option);
+
+        stage.setScene(scene);
+        stage.setTitle("User Profile");
+        stage.setMaximized(true);
+        stage.show();
     }
 
-    void addInfoToGrid(String label, GridPane grid, int row) {
-        Label nameLabel = new Label(label + ":");
-        nameLabel.getStyleClass().add("section-title");
-        grid.add(nameLabel, 0, row);
+    private void addInfoRow(GridPane grid, String title, String value, int row) {
+        Label label = new Label(title);
+        label.getStyleClass().add("section-title");
 
-        if (label.contains("Gender")) {
-            ComboBox<String> combo = new ComboBox<>();
-            combo.getItems().addAll("Male", "Female");
-            combo.getStyleClass().add("combo-box");
-            combo.setMaxWidth(Double.MAX_VALUE);
-            combo.setValue(guest.getGender().toString());
-            allFields.add(combo);
-            grid.add(combo, 1, row);
-        } else {
-            TextField field = new TextField();
-            field.getStyleClass().add("text-field");
-            field.setPrefWidth(350);
-            if (label.contains("First Name")) field.setText(guest.getUsername());
-            else if (label.contains("Address")) field.setText(guest.getAddress());
-            else if (label.contains("DOB")) {
-                LocalDate dob = guest.getDateOfBirth();
-                field.setText(dob != null ? dob.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            }
-            allFields.add(field);
-            grid.add(field, 1, row);
-        }
-    }
+        Label data = new Label(value);
+        data.setStyle("-fx-font-size: 15; -fx-text-fill: #374151;");
 
-    void addIconText(Pane pane, String string, String iconPath) {
-        HBox h =  new HBox(15);
-        h.setPadding(new Insets(0));
-        h.setAlignment(Pos.CENTER_LEFT);
-        h.getStyleClass().add("sidebar-button");
-        try {
-            ImageView image = new ImageView(new Image(getClass().getResourceAsStream(iconPath)));
-            image.setFitWidth(20); image.setFitHeight(20);
-            h.getChildren().add(image);
-        } catch (Exception e) {}
-        Label label = new Label(string);
-        label.setStyle("-fx-text-fill: white;");
-        h.getChildren().add(label);
-        pane.getChildren().add(h);
-    }
-
-    void addIconTextBlack(Pane pane, String string, String iconPath) {
-        HBox h = new HBox(10);
-        h.setAlignment(Pos.CENTER_LEFT);
-        h.getStyleClass().add("section-title");
-        try {
-            ImageView image = new ImageView(new Image(getClass().getResourceAsStream(iconPath)));
-            image.setFitWidth(18); image.setFitHeight(18);
-            h.getChildren().add(image);
-        } catch (Exception e) {}
-        Label label = new Label(string);
-        h.getChildren().add(label);
-        pane.getChildren().add(h);
+        grid.add(label, 0, row);
+        grid.add(data, 1, row);
     }
 }

@@ -15,6 +15,7 @@ public class Guest  {
     private double balance;
     private String address;
     private Gender gender;
+    private String imagePath;
     public static int CurrentInvoiceID=1000;
     public Guest()
     {}
@@ -163,6 +164,15 @@ public class Guest  {
             }
         }
         return  cnt;
+    }
+    public String getImagePath() {
+
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+
+        this.imagePath = imagePath;
     }
 
     public void cancelReservation(Reservation res)

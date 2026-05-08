@@ -1,488 +1,370 @@
 package Dasboards;
 
+import app.SceneManager;
 import database.HotelDatabase;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import model.Amenity;
-import model.Room;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import model.*;
 
+import util.SidebarGuest;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomBrowseView extends Application {
 
-    // CLASS VARIABLE
+    private Guest guest;
     private FlowPane roomContainer;
+    private LocalDate selectedStart;
+    private LocalDate selectedEnd;
+
+    public RoomBrowseView() {}
+
+    public RoomBrowseView(Guest guest) {
+        this.guest = guest;
+    }
 
     @Override
     public void start(Stage stage) {
 
-        HotelDatabase.initializeDummyData();
+        if (guest == null) {
+            guest = HotelDatabase.findGuest("youssef");
+        }
 
-        Scene scene = createScene();
+        BorderPane root = new BorderPane();
 
+        Scene scene = new Scene(root, 1400, 850);
         scene.getStylesheets().add(
                 getClass().getResource("/style.css").toExternalForm()
         );
 
-        stage.setTitle("Hotel Management System");
+        root.setLeft(SidebarGuest.createSidebar("View Rooms"));
+
+        VBox centerArea = new VBox(25);
+        centerArea.getStyleClass().add("dashboard-pane");
+        centerArea.setPadding(new Insets(30));
+
+        ScrollPane scroll = new ScrollPane(centerArea);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        root.setCenter(scroll);
+
+        Label title = new Label("Browse Rooms");
+        title.getStyleClass().add("title-label");
+
+        Label subtitle = new Label("Select your dates to see available rooms.");
+        subtitle.getStyleClass().add("subtitle-label");
+
+        // ---------------- DATE PICKER ROW ----------------
+
+        HBox dateRow = new HBox(15);
+        dateRow.setAlignment(Pos.CENTER_LEFT);
+
+        DatePicker checkInPicker = new DatePicker();
+        checkInPicker.setPromptText("Check In");
+        checkInPicker.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(LocalDate.now()));
+            }
+        });
+
+        DatePicker checkOutPicker = new DatePicker();
+        checkOutPicker.setPromptText("Check Out");
+        checkOutPicker.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                LocalDate minDate = checkInPicker.getValue() != null
+                        ? checkInPicker.getValue().plusDays(1)
+                        : LocalDate.now().plusDays(1);
+                setDisable(empty || date.isBefore(minDate));
+            }
+        });
+
+
+
+        Label dateError = new Label();
+        dateError.setStyle("-fx-text-fill: #991B1B; -fx-font-size: 13;");
+        dateError.setVisible(false);
+        dateError.setManaged(false);
+
+        dateRow.getChildren().addAll(
+                new Label("Check In:"), checkInPicker,
+                new Label("Check Out:"), checkOutPicker
+
+        );
+
+
+        HBox filters = new HBox(15);
+        filters.setAlignment(Pos.CENTER_LEFT);
+        filters.setVisible(false);
+        filters.setManaged(false);
+
+        ComboBox<String> typeCombo = new ComboBox<>();
+        typeCombo.getItems().add("All");
+
+        for (RoomType rt : HotelDatabase.roomTypes) {
+
+            typeCombo.getItems().add(
+                    rt.getName()
+            );
+        }
+        typeCombo.setValue("All");
+        typeCombo.setPrefWidth(160);
+
+        ComboBox<String> amenityCombo = new ComboBox<>();
+        amenityCombo.getItems().add("All");
+
+        for (Amenity amenity : HotelDatabase.amenities) {
+
+            amenityCombo.getItems().add(
+                    amenity.getName()
+            );
+        }
+        amenityCombo.setValue("All");
+        amenityCombo.setPrefWidth(160);
+
+        TextField priceField = new TextField();
+        priceField.setPromptText("Max Price");
+        priceField.setPrefWidth(160);
+
+
+        Button clearFilterBtn = new Button("Clear");
+        clearFilterBtn.getStyleClass().add("secondary-button");
+
+        filters.getChildren().addAll(
+                new Label("Type:"), typeCombo,
+                new Label("Amenity:"), amenityCombo,
+                new Label("Max Price:"), priceField,
+                 clearFilterBtn
+        );
+
+        // ---------------- ROOM CONTAINER ----------------
+
+        roomContainer = new FlowPane();
+        roomContainer.setAlignment(Pos.TOP_LEFT);
+        roomContainer.setHgap(20);
+        roomContainer.setVgap(20);
+        roomContainer.setPadding(new Insets(10));
+        roomContainer.setPrefWrapLength(1100);
+
+        Label placeholderLabel = new Label("Choose your check-in and check-out dates to see available rooms.");
+        placeholderLabel.getStyleClass().add("subtitle-label");
+        roomContainer.getChildren().add(placeholderLabel);
+
+
+        Runnable applyFilters = () -> {
+            if (selectedStart == null || selectedEnd == null) return;
+
+            roomContainer.getChildren().clear();
+
+            String selType = typeCombo.getValue();
+            String selAmenity = amenityCombo.getValue();
+            String priceText = priceField.getText().trim();
+
+            List<Room> available = new ArrayList<>();
+            for (Room r : HotelDatabase.rooms) {
+                if (!r.isAvailable(selectedStart, selectedEnd)) continue;
+
+                if (!selType.equals("All") && !r.getRoomType().getName().equalsIgnoreCase(selType))
+                    continue;
+
+                if (!selAmenity.equals("All")) {
+                    boolean hasAmenity = false;
+                    for (Amenity a : r.getAmenities()) {
+                        if (a.getName().equalsIgnoreCase(selAmenity)) { hasAmenity = true; break; }
+                    }
+                    if (!hasAmenity) continue;
+                }
+
+                if (!priceText.isEmpty()) {
+                    try {
+                        double maxPrice = Double.parseDouble(priceText);
+                        if (r.getPrice() > maxPrice) continue;
+                    } catch (NumberFormatException ignored) {}
+                }
+
+                available.add(r);
+            }
+
+            if (available.isEmpty()) {
+                Label noRooms = new Label("No available rooms match your criteria.");
+                noRooms.getStyleClass().add("subtitle-label");
+                roomContainer.getChildren().add(noRooms);
+            } else {
+                for (Room r : available) {
+                    roomContainer.getChildren().add(createRoomCard(r, stage));
+                }
+            }
+        };
+        Runnable validateAndRefresh = () -> {
+
+            dateError.setVisible(false);
+            dateError.setManaged(false);
+
+            LocalDate start =
+                    checkInPicker.getValue();
+
+            LocalDate end =
+                    checkOutPicker.getValue();
+
+            if (start == null || end == null) {
+
+                roomContainer.getChildren().clear();
+
+                Label placeholder =
+                        new Label(
+                                "Choose your check-in and check-out dates to see available rooms."
+                        );
+
+                placeholder.getStyleClass()
+                        .add("subtitle-label");
+
+                roomContainer.getChildren()
+                        .add(placeholder);
+
+                filters.setVisible(false);
+                filters.setManaged(false);
+
+                return;
+            }
+
+            if (!start.isBefore(end)) {
+
+                dateError.setText(
+                        "Check-out must be after check-in."
+                );
+
+                dateError.setVisible(true);
+                dateError.setManaged(true);
+
+                return;
+            }
+
+            if (start.isBefore(LocalDate.now())) {
+
+                dateError.setText(
+                        "Check-in cannot be in the past."
+                );
+
+                dateError.setVisible(true);
+                dateError.setManaged(true);
+
+                return;
+            }
+
+            selectedStart = start;
+            selectedEnd = end;
+
+            filters.setVisible(true);
+            filters.setManaged(true);
+
+            applyFilters.run();
+        };
+        checkInPicker.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                validateAndRefresh.run()
+                );
+
+        checkOutPicker.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                validateAndRefresh.run()
+                );
+
+        typeCombo.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters.run()
+                );
+
+        amenityCombo.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters.run()
+                );
+
+        priceField.textProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters.run()
+                );
+
+
+
+        clearFilterBtn.setOnAction(e -> {
+            typeCombo.setValue("All");
+            amenityCombo.setValue("All");
+            priceField.clear();
+            applyFilters.run();
+        });
+
+        centerArea.getChildren().addAll(
+                title, subtitle, dateRow, dateError, filters, roomContainer
+        );
+
         stage.setScene(scene);
+        stage.setTitle("Browse Rooms");
         stage.setMaximized(true);
         stage.show();
     }
 
-    public Scene createScene() {
 
-        BorderPane root = new BorderPane();
-
-        root.setLeft(createSidebar());
-        root.setCenter(createMainContent());
-
-        return new Scene(root, 1400, 800);
-    }
-
-    // SIDEBAR
-
-    private VBox createSidebar() {
-
-        VBox sidebar = new VBox();
-
-        sidebar.setPrefWidth(240);
-        sidebar.setMinWidth(240);
-        sidebar.setMaxWidth(240);
-
-        sidebar.setPadding(new Insets(25, 20, 25, 20));
-        sidebar.setSpacing(15);
-
-        sidebar.getStyleClass().add("sidebar");
-
-        VBox logoBox = new VBox(5);
-
-        Label logo = new Label("Hotel");
-
-        logo.setStyle(
-                "-fx-text-fill: white;" +
-                        "-fx-font-size: 48;" +
-                        "-fx-font-weight: bold;"
-        );
-
-        Label logoSubtitle = new Label("Management System");
-
-        logoSubtitle.setStyle(
-                "-fx-text-fill: #CBD5E1;" +
-                        "-fx-font-size: 18;" +
-                        "-fx-font-weight: 500;"
-        );
-
-        logoBox.getChildren().addAll(
-                logo,
-                logoSubtitle
-        );
-
-        logoBox.setPadding(new Insets(30, 0, 40, 0));
-
-        Button dashboardBtn =
-                createSidebarButton("Dashboard");
-
-        Button browseBtn =
-                createActiveSidebarButton("Browse Rooms");
-
-        Button reservationBtn =
-                createSidebarButton("Reservations");
-
-        Button invoiceBtn =
-                createSidebarButton("Invoices");
-
-        Button profileBtn =
-                createSidebarButton("Profile");
-
-        VBox navLinks = new VBox(10);
-
-        navLinks.getChildren().addAll(
-                dashboardBtn,
-                browseBtn,
-                reservationBtn,
-                invoiceBtn,
-                profileBtn
-        );
-
-        Region spacer = new Region();
-
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        Button logoutBtn =
-                createSidebarButton("Logout");
-
-        dashboardBtn.setOnAction(e -> {
-            System.out.println("Dashboard clicked");
-        });
-
-        reservationBtn.setOnAction(e -> {
-            System.out.println("Reservations clicked");
-        });
-
-        invoiceBtn.setOnAction(e -> {
-            System.out.println("Invoices clicked");
-        });
-
-        profileBtn.setOnAction(e -> {
-            System.out.println("Profile clicked");
-        });
-
-        logoutBtn.setOnAction(e -> {
-
-            Alert alert = new Alert(
-                    Alert.AlertType.INFORMATION
-            );
-
-            alert.setHeaderText("Logout");
-
-            alert.setContentText(
-                    "Logged out successfully."
-            );
-
-            alert.showAndWait();
-        });
-
-        sidebar.getChildren().addAll(
-                logoBox,
-                navLinks,
-                spacer,
-                logoutBtn
-        );
-
-        return sidebar;
-    }
-
-    // MAIN CONTENT
-
-    private VBox createMainContent() {
-
-        VBox mainContent = new VBox(20);
-
-        mainContent.setPadding(new Insets(30));
-
-        mainContent.getStyleClass()
-                .add("dashboard-pane");
-
-        Label title = new Label("Browse Rooms");
-
-        title.setStyle(
-                "-fx-font-size: 42;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #041E42;"
-        );
-
-        Label subtitle = new Label(
-                "Find the perfect room for your stay."
-        );
-
-        subtitle.setStyle(
-                "-fx-font-size: 16;" +
-                        "-fx-text-fill: #555555;"
-        );
-
-        HBox filters = createFilters();
-
-        // CLASS VARIABLE INITIALIZATION
-        roomContainer = new FlowPane();
-
-        roomContainer.setAlignment(Pos.TOP_LEFT);
-
-        roomContainer.setHgap(20);
-        roomContainer.setVgap(20);
-
-        roomContainer.setPadding(new Insets(10));
-
-        roomContainer.setPrefWrapLength(1100);
-
-        // DISPLAY ALL ROOMS
-        displayRooms(loadRooms());
-
-        ScrollPane scrollPane =
-                new ScrollPane(roomContainer);
-
-        scrollPane.setFitToWidth(true);
-
-        scrollPane.setStyle(
-                "-fx-background: transparent;" +
-                        "-fx-background-color: transparent;" +
-                        "-fx-border-color: transparent;"
-        );
-
-        scrollPane.setHbarPolicy(
-                ScrollPane.ScrollBarPolicy.NEVER
-        );
-
-        mainContent.getChildren().addAll(
-                title,
-                subtitle,
-                filters,
-                scrollPane
-        );
-
-        return mainContent;
-    }
-
-    // LOAD ROOMS
-
-    private List<Room> loadRooms() {
-
-        return HotelDatabase.rooms;
-    }
-
-    // DISPLAY ROOMS
-
-    private void displayRooms(List<Room> rooms) {
-
-        roomContainer.getChildren().clear();
-
-        for (Room room : rooms) {
-
-            roomContainer.getChildren().add(
-                    createcard(room)
-            );
-        }
-    }
-
-    // SHOW ROOM DETAILS
-
-    private void showRoomDetails(Room room) {
-
-        Alert alert =
-                new Alert(Alert.AlertType.INFORMATION);
-
-        alert.setTitle("Room Details");
-
-        alert.setHeaderText(
-                room.getRoomType().getName()
-        );
-
-        alert.setContentText(
-                "Room ID: " + room.getRoomId() +
-                        "\nPrice: $" + room.getPrice() +
-                        "\nAmenities: " + room.getAmenities()
-        );
-
-        alert.showAndWait();
-    }
-
-    // ALL FILTERS
-
-    // FILTER BY TYPE
-
-    private boolean filterByType(
-            Room room,
-            String selectedType
-    ) {
-
-        if (selectedType.equals("All")) {
-
-            return true;
-        }
-
-        return room.getRoomType()
-                .getName()
-                .equalsIgnoreCase(selectedType);
-    }
-
-// FILTER BY PRICE
-
-    private boolean filterByPrice(
-            Room room,
-            String priceText
-    ) {
-
-        if (priceText.isEmpty()) {
-
-            return true;
-        }
-
-        double maxPrice =
-                Double.parseDouble(priceText);
-
-        return room.getPrice() <= maxPrice;
-    }
-
-// FILTER BY AMENITIES
-
-    private boolean filterByAmenities(
-            Room room,
-            String selectedAmenity
-    ) {
-
-        if (selectedAmenity.equals("All")) {
-
-            return true;
-        }
-
-        for (Amenity amenity :
-                room.getAmenities()) {
-
-            if (amenity.getName()
-                    .equalsIgnoreCase(selectedAmenity)) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void applyAllFilters(
-            String selectedType,
-            String selectedAmenity,
-            String priceText
-    ) {
-
-        List<Room> filteredRooms =
-                new ArrayList<>();
-
-        for (Room room : loadRooms()) {
-
-            boolean matchesType =
-                    filterByType(room, selectedType);
-
-            boolean matchesAmenity =
-                    filterByAmenities(
-                            room,
-                            selectedAmenity
-                    );
-
-            boolean matchesPrice =
-                    filterByPrice(room, priceText);
-
-            if (matchesType &&
-                    matchesAmenity &&
-                    matchesPrice) {
-
-                filteredRooms.add(room);
-            }
-        }
-
-        displayRooms(filteredRooms);
-    }
-
-    // FILTERS
-
-    private HBox createFilters() {
-
-        HBox filters = new HBox(15);
-
-        filters.setAlignment(Pos.CENTER_LEFT);
-
-        filters.getStyleClass()
-                .add("filter-bar");
-
-        ComboBox<String> typeCombo =
-                new ComboBox<>();
-
-        typeCombo.getItems().addAll(
-                "All",
-                "Single",
-                "Double",
-                "Suite"
-        );
-
-        typeCombo.setValue("All");
-
-        typeCombo.setPrefWidth(180);
-
-        ComboBox<String> amenityCombo =
-                new ComboBox<>();
-
-        amenityCombo.getItems().addAll(
-                "All",
-                "WiFi",
-                "TV",
-                "MiniBar",
-                "AC"
-        );
-
-        amenityCombo.setValue("All");
-
-        amenityCombo.setPrefWidth(180);
-
-        TextField priceField =
-                new TextField();
-
-        priceField.setPromptText("Max Price");
-
-        priceField.setPrefWidth(220);
-
-        Button filterBtn =
-                createPrimaryButton("Apply Filter");
-
-        // BUTTON ACTION
-
-        filterBtn.setOnAction(e -> {
-
-            applyAllFilters(
-                    typeCombo.getValue(),
-                    amenityCombo.getValue(),
-                    priceField.getText()
-            );
-        });
-
-        filters.getChildren().addAll(
-                typeCombo,
-                amenityCombo,
-                priceField,
-                filterBtn
-        );
-
-        return filters;
-    }
-
-    // ROOM CARD
-
-    private VBox createcard(Room room) {
+    private VBox createRoomCard(Room room, Stage stage) {
 
         VBox card = new VBox(10);
-
         card.setPrefWidth(320);
+        card.getStyleClass().add("card");
 
-        card.getStyleClass()
-                .add("card");
+        String typeName = room.getRoomType().getName().toLowerCase();
+        String roomTypeName =
+                room.getRoomType()
+                        .getName();
 
-        String imagePath = "/Single.jpg";
-
-        if (room.getRoomType()
-                .getName()
-                .equalsIgnoreCase("Double")) {
-
-            imagePath = "/Double.jpg";
-        }
-
-        else if (room.getRoomType()
-                .getName()
-                .equalsIgnoreCase("Suite")) {
-
-            imagePath = "/Suite.jpg";
-        }
-
+        String imagePath =
+                "/" +
+                        roomTypeName
+                                .replaceAll("\\s+", "")
+                                .toLowerCase()
+                        +
+                        ".jpg";
         Image image;
 
         try {
 
             image = new Image(
-                    getClass().getResource(imagePath).toExternalForm()
+                    getClass()
+                            .getResourceAsStream(
+                                    imagePath
+                            )
             );
 
-        }
+            if (image.isError()) {
 
-        catch (Exception e) {
+                throw new Exception();
+            }
+
+        } catch (Exception e) {
 
             image = new Image(
-                    getClass().getResource("/Single.jpg").toExternalForm()
+                    getClass()
+                            .getResourceAsStream(
+                                    "/placeholder.jpg"
+                            )
             );
         }
 
@@ -491,170 +373,266 @@ public class RoomBrowseView extends Application {
 
         roomImage.setFitWidth(290);
         roomImage.setFitHeight(170);
-
         roomImage.setPreserveRatio(false);
-
         roomImage.setSmooth(true);
 
-        Label roomName = new Label(
-                room.getRoomType().getName() + " Room"
+        Rectangle clip = new Rectangle(290, 170);
+        clip.setArcWidth(12);
+        clip.setArcHeight(12);
+        roomImage.setClip(clip);
+
+        HBox nameBadgeRow = new HBox(8);
+        nameBadgeRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label roomName = new Label(room.getRoomType().getName() + " Room");
+        roomName.getStyleClass().add("section-title");
+
+        Label roomNumBadge = new Label("# " + room.getRoomId());
+        roomNumBadge.setStyle(
+                "-fx-background-color: #E9EEF5; -fx-text-fill: #1E3A5F;" +
+                        "-fx-padding: 2 8; -fx-background-radius: 6;" +
+                        "-fx-font-size: 12; -fx-font-weight: bold;"
         );
 
-        roomName.getStyleClass()
-                .add("room-title");
+        nameBadgeRow.getChildren().addAll(roomName, roomNumBadge);
 
-        Label roomType = new Label(
-                room.getRoomType().getName()
-        );
-
-        StringBuilder amenityText =
-                new StringBuilder();
-
-        for (int i = 0;
-             i < room.getAmenities().size();
-             i++) {
-
-            amenityText.append(
-                    room.getAmenities()
-                            .get(i)
-                            .getName()
-            );
-
-            if (i < room.getAmenities().size() - 1) {
-
-                amenityText.append(" • ");
-            }
+        StringBuilder amenityText = new StringBuilder();
+        for (int i = 0; i < room.getAmenities().size(); i++) {
+            amenityText.append(room.getAmenities().get(i).getName());
+            if (i < room.getAmenities().size() - 1) amenityText.append(" • ");
         }
 
-        Label amenities = new Label(
-                amenityText.toString()
-        );
+        Label amenities = new Label(amenityText.toString());
+        amenities.getStyleClass().add("subtitle-label");
 
-        Label capacity =
-                new Label("2 Guests");
+        Label roomPrice = new Label("$" + room.getPrice() + " / night");
+        roomPrice.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #166534;");
 
-        roomType.getStyleClass()
-                .add("room-meta");
+        Button reserveBtn = new Button("Reserve");
+        reserveBtn.getStyleClass().add("button");
 
-        amenities.getStyleClass()
-                .add("room-meta");
-
-        capacity.getStyleClass()
-                .add("room-meta");
-
-        Label roomPrice = new Label(
-                "$" + room.getPrice() + " / night"
-        );
-
-        roomPrice.getStyleClass()
-                .add("room-price");
-
-        Button reserveBtn =
-                createPrimaryButton("Reserve");
-
-        reserveBtn.setOnAction(e -> {
-
-            Alert alert = new Alert(
-                    Alert.AlertType.INFORMATION
-            );
-
-            alert.setTitle("Reservation");
-
-            alert.setHeaderText(
-                    "Reservation Successful"
-            );
-
-            alert.setContentText(
-                    "You reserved Room " +
-                            room.getRoomId()
-            );
-
-            alert.showAndWait();
-        });
+        reserveBtn.setOnAction(e -> openReservationFlow(room, stage));
 
         HBox bottomSection = new HBox();
-
-        bottomSection.setAlignment(
-                Pos.CENTER_LEFT
-        );
+        bottomSection.setAlignment(Pos.CENTER_LEFT);
 
         Region push = new Region();
-
         HBox.setHgrow(push, Priority.ALWAYS);
 
-        bottomSection.getChildren().addAll(
-                roomPrice,
-                push,
-                reserveBtn
-        );
+        bottomSection.getChildren().addAll(roomPrice, push, reserveBtn);
 
-        card.getChildren().addAll(
-                roomImage,
-                roomName,
-                roomType,
-                amenities,
-                capacity,
-                bottomSection
-        );
+        card.getChildren().addAll(roomImage, nameBadgeRow, amenities, bottomSection);
 
         return card;
     }
 
-    // BUTTON HELPERS
+    // ---------------- RESERVATION FLOW ----------------
 
-    private Button createSidebarButton(
-            String text
-    ) {
+    private void openReservationFlow(Room room, Stage stage) {
 
-        Button btn = new Button(text);
+        Reservation[] resHolder = {null};
 
-        btn.setPrefWidth(Double.MAX_VALUE);
+        Stage popup = new Stage();
+        popup.setTitle("Reserve - " + room.getRoomType().getName() + " Room");
+        popup.setResizable(false);
 
-        btn.getStyleClass().add("sidebar-button");
+        VBox popupRoot = new VBox(18);
+        popupRoot.setPadding(new Insets(25));
+        popupRoot.getStyleClass().add("card");
+        popupRoot.setStyle("-fx-cursor: default;");
 
-        btn.setMinHeight(50);
+        Label popupTitle = new Label("Reserve " + room.getRoomType().getName() + " Room");
+        popupTitle.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
+        Label datesLabel = new Label(
+                "📅 " + selectedStart + "  →  " + selectedEnd
+        );
+        datesLabel.getStyleClass().add("subtitle-label");
 
-        return btn;
-    }
+        Label priceLabel = new Label(
+                "Price: $" + room.getPrice() + " / night"
+        );
+        priceLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #166534; -fx-font-weight: bold;");
 
-    private Button createActiveSidebarButton(
-            String text
-    ) {
+        Label errorLabel = new Label();
+        errorLabel.setStyle("-fx-text-fill: #991B1B; -fx-font-size: 13;");
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
 
-        Button btn = new Button(text);
+        // ---------------- EXTRA AMENITIES ----------------
 
-        btn.setPrefWidth(Double.MAX_VALUE);
+        Label amenityTitle = new Label("Extra Amenities");
+        amenityTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
 
-        btn.getStyleClass().add("sidebar-button-active");
+        VBox amenityList = new VBox(8);
 
-        btn.setMinHeight(50);
+        List<Amenity> extraAmenities = new ArrayList<>();
 
-        btn.setStyle(
-                "-fx-background-color: #1D4ED8;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 16;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-alignment: center-left;" +
-                        "-fx-padding: 12 20 12 20;"
+        List<Amenity> allAmenities = HotelDatabase.amenities;
+
+        for (Amenity amenity : allAmenities) {
+            boolean alreadyOnRoom = room.getAmenities().stream()
+                    .anyMatch(a -> a.getName().equalsIgnoreCase(amenity.getName()));
+
+            CheckBox cb = new CheckBox(
+                    amenity.getName() + "  (+$" + amenity.getPrice() + ")"
+            );
+            cb.setDisable(alreadyOnRoom);
+
+            if (alreadyOnRoom) {
+                cb.setText(amenity.getName() + "  (included)");
+                cb.setSelected(true);
+            }
+
+            cb.setOnAction(e -> {
+                if (cb.isSelected()) {
+                    if (!extraAmenities.contains(amenity)) {
+                        extraAmenities.add(amenity);
+                    }
+                } else {
+                    extraAmenities.remove(amenity);
+                }
+            });
+
+            amenityList.getChildren().add(cb);
+        }
+
+        // ---------------- PAYMENT METHOD ----------------
+
+        Label paymentTitle = new Label("Payment Method");
+        paymentTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+
+        ComboBox<PaymentMethod> paymentCombo = new ComboBox<>();
+        paymentCombo.getItems().addAll(PaymentMethod.values());
+        paymentCombo.setPromptText("Select payment method");
+        paymentCombo.setPrefWidth(260);
+
+        // ---------------- CONFIRM BUTTON ----------------
+
+        Button confirmBtn = new Button("Confirm Reservation");
+        confirmBtn.getStyleClass().add("button");
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().add("danger-button");
+
+        HBox btnRow = new HBox(12);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+        btnRow.getChildren().addAll(cancelBtn, confirmBtn);
+
+        cancelBtn.setOnAction(e -> popup.close());
+
+        confirmBtn.setOnAction(e -> {
+            errorLabel.setVisible(false);
+            errorLabel.setManaged(false);
+
+            if (paymentCombo.getValue() == null) {
+                errorLabel.setText("Please select a payment method.");
+                errorLabel.setVisible(true);
+                errorLabel.setManaged(true);
+                return;
+            }
+
+            try {
+                Reservation res = guest.makeReservation(room, selectedStart, selectedEnd);
+                resHolder[0] = res;
+
+                for (Amenity a : extraAmenities) {
+                    res.addExtraAmenity(a);
+                }
+
+                Invoice invoice = new Invoice(res, paymentCombo.getValue());
+                res.setInvoice(invoice);
+                guest.checkout(res, paymentCombo.getValue());
+
+                popup.close();
+                showInvoicePopup(invoice, stage);
+
+            } catch (Exception ex) {
+                errorLabel.setText(ex.getMessage());
+                errorLabel.setVisible(true);
+                errorLabel.setManaged(true);
+            }
+        });
+
+        ScrollPane popupScroll = new ScrollPane(popupRoot);
+        popupScroll.setFitToWidth(true);
+        popupScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        popupScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        popupRoot.getChildren().addAll(
+                popupTitle,
+                datesLabel,
+                priceLabel,
+                new Separator(),
+                amenityTitle,
+                amenityList,
+                new Separator(),
+                paymentTitle,
+                paymentCombo,
+                errorLabel,
+                btnRow
         );
 
-        return btn;
+        Scene popupScene = new Scene(popupScroll, 440, 560);
+        popupScene.getStylesheets().add(
+                getClass().getResource("/style.css").toExternalForm()
+        );
+
+        popup.setScene(popupScene);
+        popup.show();
     }
 
 
-    private Button createPrimaryButton(
-            String text
-    ) {
+    private void showInvoicePopup(Invoice invoice, Stage stage) {
 
-        Button btn = new Button(text);
-        btn.getStyleClass().add("primary-button");
+        Stage popup = new Stage();
+        popup.setTitle("Reservation Confirmed");
+        popup.setResizable(false);
 
-        return btn;
+        VBox root = new VBox(18);
+        root.setPadding(new Insets(25));
+        root.getStyleClass().add("card");
+
+        Label title = new Label("✅ Reservation Confirmed!");
+        title.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #166534;");
+
+        GridPane details = new GridPane();
+        details.setHgap(30);
+        details.setVgap(12);
+
+        addDetailRow(details, "Invoice ID", "INV-" + invoice.getInvoiceId(), 0);
+        addDetailRow(details, "Room", invoice.getReservation().getRoom().getRoomType().getName() + " Room", 1);
+        addDetailRow(details, "Check In", invoice.getReservation().getCheckInDate().toString(), 2);
+        addDetailRow(details, "Check Out", invoice.getReservation().getCheckOutDate().toString(), 3);
+        addDetailRow(details, "Payment", invoice.getPaymentMethod().toString(), 4);
+        addDetailRow(details, "Total", "$" + String.format("%.2f", invoice.getTotalAmount()), 5);
+
+        Button closeBtn = new Button("Done");
+        closeBtn.getStyleClass().add("button");
+        closeBtn.setOnAction(e -> {
+            popup.close();
+            SceneManager.switchToDashboard(new ReservationDashboard(guest));
+        });
+
+        root.getChildren().addAll(title, details, closeBtn);
+
+        Scene scene = new Scene(root, 420, 360);
+        scene.getStylesheets().add(
+                getClass().getResource("/style.css").toExternalForm()
+        );
+
+        popup.setScene(scene);
+        popup.show();
     }
 
-    public static void main(String[] args) {
+    private void addDetailRow(GridPane grid, String label, String value, int row) {
+        Label l = new Label(label);
+        l.getStyleClass().add("section-title");
 
-        launch(args);
+        Label v = new Label(value);
+        v.setStyle("-fx-font-size: 14; -fx-text-fill: #374151;");
+
+        grid.add(l, 0, row);
+        grid.add(v, 1, row);
     }
 }
