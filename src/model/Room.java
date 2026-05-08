@@ -49,7 +49,7 @@ public class Room {
     //data methods setters
     public void setRoomType(RoomType roomType){
         if (roomType == null)
-        throw new InvalidInputException("RoomType cannot be null");
+            throw new InvalidInputException("RoomType cannot be null");
         this.roomType = roomType;
     }
     public void setPrice (double price){
