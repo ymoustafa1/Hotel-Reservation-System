@@ -1,5 +1,6 @@
 package Dasboards;
 
+import database.HotelDatabase;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -8,13 +9,29 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import model.Amenity;
+import model.Room;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RoomBrowseView extends Application {
+
+    // CLASS VARIABLE
+    private FlowPane roomContainer;
 
     @Override
     public void start(Stage stage) {
 
+        HotelDatabase.initializeDummyData();
+
         Scene scene = createScene();
+
+        scene.getStylesheets().add(
+                getClass().getResource("/style.css").toExternalForm()
+        );
 
         stage.setTitle("Hotel Management System");
         stage.setScene(scene);
@@ -38,38 +55,54 @@ public class RoomBrowseView extends Application {
 
         VBox sidebar = new VBox();
 
-        sidebar.setPrefWidth(260);
-        sidebar.setMinWidth(260);
-        sidebar.setMaxWidth(260);
+        sidebar.setPrefWidth(240);
+        sidebar.setMinWidth(240);
+        sidebar.setMaxWidth(240);
 
         sidebar.setPadding(new Insets(25, 20, 25, 20));
         sidebar.setSpacing(15);
 
-        sidebar.setStyle("-fx-background-color: #041E42;");
+        sidebar.getStyleClass().add("sidebar");
 
-        VBox logoBox = new VBox(2);
+        VBox logoBox = new VBox(5);
 
         Label logo = new Label("Hotel");
+
         logo.setStyle(
                 "-fx-text-fill: white;" +
-                        "-fx-font-size: 32;" +
+                        "-fx-font-size: 48;" +
                         "-fx-font-weight: bold;"
         );
 
         Label logoSubtitle = new Label("Management System");
+
         logoSubtitle.setStyle(
                 "-fx-text-fill: #CBD5E1;" +
-                        "-fx-font-size: 13;"
+                        "-fx-font-size: 18;" +
+                        "-fx-font-weight: 500;"
         );
 
-        logoBox.getChildren().addAll(logo, logoSubtitle);
-        logoBox.setPadding(new Insets(10, 0, 30, 0));
+        logoBox.getChildren().addAll(
+                logo,
+                logoSubtitle
+        );
 
-        Button dashboardBtn = createSidebarButton("Dashboard");
-        Button browseBtn = createActiveSidebarButton("Browse Rooms");
-        Button reservationBtn = createSidebarButton("Reservations");
-        Button invoiceBtn = createSidebarButton("Invoices");
-        Button profileBtn = createSidebarButton("Profile");
+        logoBox.setPadding(new Insets(30, 0, 40, 0));
+
+        Button dashboardBtn =
+                createSidebarButton("Dashboard");
+
+        Button browseBtn =
+                createActiveSidebarButton("Browse Rooms");
+
+        Button reservationBtn =
+                createSidebarButton("Reservations");
+
+        Button invoiceBtn =
+                createSidebarButton("Invoices");
+
+        Button profileBtn =
+                createSidebarButton("Profile");
 
         VBox navLinks = new VBox(10);
 
@@ -82,9 +115,42 @@ public class RoomBrowseView extends Application {
         );
 
         Region spacer = new Region();
+
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        Button logoutBtn = createSidebarButton("Logout");
+        Button logoutBtn =
+                createSidebarButton("Logout");
+
+        dashboardBtn.setOnAction(e -> {
+            System.out.println("Dashboard clicked");
+        });
+
+        reservationBtn.setOnAction(e -> {
+            System.out.println("Reservations clicked");
+        });
+
+        invoiceBtn.setOnAction(e -> {
+            System.out.println("Invoices clicked");
+        });
+
+        profileBtn.setOnAction(e -> {
+            System.out.println("Profile clicked");
+        });
+
+        logoutBtn.setOnAction(e -> {
+
+            Alert alert = new Alert(
+                    Alert.AlertType.INFORMATION
+            );
+
+            alert.setHeaderText("Logout");
+
+            alert.setContentText(
+                    "Logged out successfully."
+            );
+
+            alert.showAndWait();
+        });
 
         sidebar.getChildren().addAll(
                 logoBox,
@@ -104,9 +170,8 @@ public class RoomBrowseView extends Application {
 
         mainContent.setPadding(new Insets(30));
 
-        mainContent.setStyle(
-                "-fx-background-color: #F5F7FA;"
-        );
+        mainContent.getStyleClass()
+                .add("dashboard-pane");
 
         Label title = new Label("Browse Rooms");
 
@@ -127,7 +192,10 @@ public class RoomBrowseView extends Application {
 
         HBox filters = createFilters();
 
-        FlowPane roomContainer = new FlowPane();
+        // CLASS VARIABLE INITIALIZATION
+        roomContainer = new FlowPane();
+
+        roomContainer.setAlignment(Pos.TOP_LEFT);
 
         roomContainer.setHgap(20);
         roomContainer.setVgap(20);
@@ -136,13 +204,11 @@ public class RoomBrowseView extends Application {
 
         roomContainer.setPrefWrapLength(1100);
 
-        roomContainer.getChildren().addAll(
-                createRoomCard(),
-                createRoomCard(),
-                createRoomCard()
-        );
+        // DISPLAY ALL ROOMS
+        displayRooms(loadRooms());
 
-        ScrollPane scrollPane = new ScrollPane(roomContainer);
+        ScrollPane scrollPane =
+                new ScrollPane(roomContainer);
 
         scrollPane.setFitToWidth(true);
 
@@ -150,6 +216,10 @@ public class RoomBrowseView extends Application {
                 "-fx-background: transparent;" +
                         "-fx-background-color: transparent;" +
                         "-fx-border-color: transparent;"
+        );
+
+        scrollPane.setHbarPolicy(
+                ScrollPane.ScrollBarPolicy.NEVER
         );
 
         mainContent.getChildren().addAll(
@@ -162,9 +232,146 @@ public class RoomBrowseView extends Application {
         return mainContent;
     }
 
-    // =========================
+    // LOAD ROOMS
+
+    private List<Room> loadRooms() {
+
+        return HotelDatabase.rooms;
+    }
+
+    // DISPLAY ROOMS
+
+    private void displayRooms(List<Room> rooms) {
+
+        roomContainer.getChildren().clear();
+
+        for (Room room : rooms) {
+
+            roomContainer.getChildren().add(
+                    createcard(room)
+            );
+        }
+    }
+
+    // SHOW ROOM DETAILS
+
+    private void showRoomDetails(Room room) {
+
+        Alert alert =
+                new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setTitle("Room Details");
+
+        alert.setHeaderText(
+                room.getRoomType().getName()
+        );
+
+        alert.setContentText(
+                "Room ID: " + room.getRoomId() +
+                        "\nPrice: $" + room.getPrice() +
+                        "\nAmenities: " + room.getAmenities()
+        );
+
+        alert.showAndWait();
+    }
+
+    // ALL FILTERS
+
+    // FILTER BY TYPE
+
+    private boolean filterByType(
+            Room room,
+            String selectedType
+    ) {
+
+        if (selectedType.equals("All")) {
+
+            return true;
+        }
+
+        return room.getRoomType()
+                .getName()
+                .equalsIgnoreCase(selectedType);
+    }
+
+// FILTER BY PRICE
+
+    private boolean filterByPrice(
+            Room room,
+            String priceText
+    ) {
+
+        if (priceText.isEmpty()) {
+
+            return true;
+        }
+
+        double maxPrice =
+                Double.parseDouble(priceText);
+
+        return room.getPrice() <= maxPrice;
+    }
+
+// FILTER BY AMENITIES
+
+    private boolean filterByAmenities(
+            Room room,
+            String selectedAmenity
+    ) {
+
+        if (selectedAmenity.equals("All")) {
+
+            return true;
+        }
+
+        for (Amenity amenity :
+                room.getAmenities()) {
+
+            if (amenity.getName()
+                    .equalsIgnoreCase(selectedAmenity)) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void applyAllFilters(
+            String selectedType,
+            String selectedAmenity,
+            String priceText
+    ) {
+
+        List<Room> filteredRooms =
+                new ArrayList<>();
+
+        for (Room room : loadRooms()) {
+
+            boolean matchesType =
+                    filterByType(room, selectedType);
+
+            boolean matchesAmenity =
+                    filterByAmenities(
+                            room,
+                            selectedAmenity
+                    );
+
+            boolean matchesPrice =
+                    filterByPrice(room, priceText);
+
+            if (matchesType &&
+                    matchesAmenity &&
+                    matchesPrice) {
+
+                filteredRooms.add(room);
+            }
+        }
+
+        displayRooms(filteredRooms);
+    }
+
     // FILTERS
-    // =========================
 
     private HBox createFilters() {
 
@@ -172,32 +379,58 @@ public class RoomBrowseView extends Application {
 
         filters.setAlignment(Pos.CENTER_LEFT);
 
-        ComboBox<String> typeCombo = new ComboBox<>();
+        filters.getStyleClass()
+                .add("filter-bar");
+
+        ComboBox<String> typeCombo =
+                new ComboBox<>();
 
         typeCombo.getItems().addAll(
+                "All",
                 "Single",
                 "Double",
                 "Suite"
         );
 
-        typeCombo.setPromptText("Room Type");
+        typeCombo.setValue("All");
 
-        ComboBox<String> amenityCombo = new ComboBox<>();
+        typeCombo.setPrefWidth(180);
+
+        ComboBox<String> amenityCombo =
+                new ComboBox<>();
 
         amenityCombo.getItems().addAll(
+                "All",
                 "WiFi",
                 "TV",
-                "Mini Bar",
+                "MiniBar",
                 "AC"
         );
 
-        amenityCombo.setPromptText("Amenity");
+        amenityCombo.setValue("All");
 
-        TextField priceField = new TextField();
+        amenityCombo.setPrefWidth(180);
+
+        TextField priceField =
+                new TextField();
 
         priceField.setPromptText("Max Price");
 
-        Button filterBtn = createPrimaryButton("Apply Filter");
+        priceField.setPrefWidth(220);
+
+        Button filterBtn =
+                createPrimaryButton("Apply Filter");
+
+        // BUTTON ACTION
+
+        filterBtn.setOnAction(e -> {
+
+            applyAllFilters(
+                    typeCombo.getValue(),
+                    amenityCombo.getValue(),
+                    priceField.getText()
+            );
+        });
 
         filters.getChildren().addAll(
                 typeCombo,
@@ -211,58 +444,126 @@ public class RoomBrowseView extends Application {
 
     // ROOM CARD
 
-    private VBox createRoomCard() {
+    private VBox createcard(Room room) {
 
-        VBox roomCard = new VBox(15);
+        VBox card = new VBox(10);
 
-        roomCard.setPrefWidth(320);
+        card.setPrefWidth(320);
 
-        roomCard.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-background-radius: 18;" +
-                        "-fx-border-color: #E5E7EB;" +
-                        "-fx-border-radius: 18;" +
-                        "-fx-padding: 15;"
+        card.getStyleClass()
+                .add("room-card");
+
+        String imagePath = "/Single.jpg";
+
+        if (room.getRoomType()
+                .getName()
+                .equalsIgnoreCase("Double")) {
+
+            imagePath = "/Double.jpg";
+        }
+
+        else if (room.getRoomType()
+                .getName()
+                .equalsIgnoreCase("Suite")) {
+
+            imagePath = "/Suite.jpg";
+        }
+
+        Image image = new Image(
+                getClass().getResourceAsStream(imagePath)
         );
 
-        Rectangle imagePlaceholder = new Rectangle(290, 170);
+        ImageView roomImage =
+                new ImageView(image);
 
-        imagePlaceholder.setArcWidth(20);
-        imagePlaceholder.setArcHeight(20);
+        roomImage.setFitWidth(290);
+        roomImage.setFitHeight(170);
 
-        imagePlaceholder.setStyle(
-                "-fx-fill: #D1D5DB;"
+        roomImage.setPreserveRatio(false);
+
+        roomImage.setSmooth(true);
+
+        Label roomName = new Label(
+                room.getRoomType().getName() + " Room"
         );
 
-        Label roomName = new Label("Deluxe King Room");
+        roomName.getStyleClass()
+                .add("room-title");
 
-        roomName.setStyle(
-                "-fx-font-size: 24;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #041E42;"
+        Label roomType = new Label(
+                room.getRoomType().getName()
         );
 
-        Label roomType = new Label("Double Room");
+        StringBuilder amenityText =
+                new StringBuilder();
+
+        for (int i = 0;
+             i < room.getAmenities().size();
+             i++) {
+
+            amenityText.append(
+                    room.getAmenities()
+                            .get(i)
+                            .getName()
+            );
+
+            if (i < room.getAmenities().size() - 1) {
+
+                amenityText.append(" • ");
+            }
+        }
 
         Label amenities = new Label(
-                "WiFi • TV • AC • Mini Bar"
+                amenityText.toString()
         );
 
-        Label capacity = new Label("2 Guests");
+        Label capacity =
+                new Label("2 Guests");
 
-        Label roomPrice = new Label("$140 / night");
+        roomType.getStyleClass()
+                .add("room-meta");
 
-        roomPrice.setStyle(
-                "-fx-font-size: 20;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #1D4ED8;"
+        amenities.getStyleClass()
+                .add("room-meta");
+
+        capacity.getStyleClass()
+                .add("room-meta");
+
+        Label roomPrice = new Label(
+                "$" + room.getPrice() + " / night"
         );
 
-        Button reserveBtn = createPrimaryButton("Reserve");
+        roomPrice.getStyleClass()
+                .add("room-price");
+
+        Button reserveBtn =
+                createPrimaryButton("Reserve");
+
+        reserveBtn.setOnAction(e -> {
+
+            Alert alert = new Alert(
+                    Alert.AlertType.INFORMATION
+            );
+
+            alert.setTitle("Reservation");
+
+            alert.setHeaderText(
+                    "Reservation Successful"
+            );
+
+            alert.setContentText(
+                    "You reserved Room " +
+                            room.getRoomId()
+            );
+
+            alert.showAndWait();
+        });
 
         HBox bottomSection = new HBox();
 
-        bottomSection.setAlignment(Pos.CENTER_LEFT);
+        bottomSection.setAlignment(
+                Pos.CENTER_LEFT
+        );
 
         Region push = new Region();
 
@@ -274,8 +575,8 @@ public class RoomBrowseView extends Application {
                 reserveBtn
         );
 
-        roomCard.getChildren().addAll(
-                imagePlaceholder,
+        card.getChildren().addAll(
+                roomImage,
                 roomName,
                 roomType,
                 amenities,
@@ -283,16 +584,21 @@ public class RoomBrowseView extends Application {
                 bottomSection
         );
 
-        return roomCard;
+        return card;
     }
 
     // BUTTON HELPERS
 
-    private Button createSidebarButton(String text) {
+    private Button createSidebarButton(
+            String text
+    ) {
 
         Button btn = new Button(text);
 
         btn.setPrefWidth(Double.MAX_VALUE);
+
+        btn.getStyleClass().add("sidebar-button");
+
         btn.setMinHeight(50);
 
         btn.setStyle(
@@ -306,11 +612,16 @@ public class RoomBrowseView extends Application {
         return btn;
     }
 
-    private Button createActiveSidebarButton(String text) {
+    private Button createActiveSidebarButton(
+            String text
+    ) {
 
         Button btn = new Button(text);
 
         btn.setPrefWidth(Double.MAX_VALUE);
+
+        btn.getStyleClass().add("sidebar-button-active");
+
         btn.setMinHeight(50);
 
         btn.setStyle(
@@ -325,22 +636,19 @@ public class RoomBrowseView extends Application {
         return btn;
     }
 
-    private Button createPrimaryButton(String text) {
+
+    private Button createPrimaryButton(
+            String text
+    ) {
 
         Button btn = new Button(text);
-
-        btn.setStyle(
-                "-fx-background-color: #041E42;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 14;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-padding: 10 20 10 20;"
-        );
+        btn.getStyleClass().add("primary-button");
 
         return btn;
     }
 
     public static void main(String[] args) {
+
         launch(args);
     }
 }
