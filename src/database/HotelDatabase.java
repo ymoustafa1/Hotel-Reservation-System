@@ -169,7 +169,14 @@ public class HotelDatabase
 
         // RESERVATIONS
         Reservation res1 = new Reservation(g2, r1, LocalDate.now(), LocalDate.now().plusDays(3));
+        Reservation res2 = new Reservation(g1, r2, LocalDate.now(), LocalDate.now().plusDays(3));
         res1.setStatus(ReservationStatus.RESERVED);
+        res2.setStatus(ReservationStatus.RESERVED);
         reservations.add(res1);
+        reservations.add(res2);
+
+        // INVOICES
+        Invoice invoice = new Invoice(res1,PaymentMethod.CASH);
+        Invoice invoice1 = new Invoice(res1,PaymentMethod.CREDIT_CARD);
     }
 }
