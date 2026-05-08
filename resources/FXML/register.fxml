@@ -8,7 +8,7 @@
 
 <StackPane
         xmlns:fx="http://javafx.com/fxml"
-        fx:controller="app.controllers.AuthController"
+        fx:controller="app.controllers.RegisterController"
         styleClass="login-background">
 
     <HBox
@@ -16,6 +16,7 @@
             maxWidth="1100"
             maxHeight="650"
             styleClass="login-card">
+
 
         <StackPane
                 prefWidth="520"
@@ -48,97 +49,102 @@
                     maxWidth="420">
 
                 <Label
-                        text="Welcome to"
+                        text="Create Your"
                         style="-fx-text-fill: white; -fx-font-size: 26;"/>
 
                 <Label
-                        text="Hotel&#10;Management&#10;System"
+                        text="Hotel Account"
                         style="-fx-text-fill: white; -fx-font-size: 54; -fx-font-weight: bold;"/>
 
                 <Separator prefWidth="80"/>
 
                 <Label
                         wrapText="true"
-                        text="Manage your hotel operations with ease and efficiency."
+                        text="Register now to manage reservations, rooms, and hotel services efficiently."
                         style="-fx-text-fill: white; -fx-font-size: 18;"/>
 
             </VBox>
 
         </StackPane>
 
+
         <VBox
                 alignment="CENTER"
-                spacing="0"
-                prefWidth="580"
-                fillWidth="true">
+                prefWidth="580">
 
             <padding>
-                <Insets top="0" right="70" bottom="0" left="70"/>
+                <Insets top="0" right="60" bottom="0" left="60"/>
             </padding>
-
-            <TabPane
-                    tabClosingPolicy="UNAVAILABLE"
-                    prefWidth="430"
-                    maxWidth="430"
-                    >
-
-                <tabs>
-
-            <Tab text="Login">
 
             <ScrollPane
                     fitToWidth="true"
                     fitToHeight="true"
                     hbarPolicy="NEVER"
                     vbarPolicy="AS_NEEDED"
-                    pannable="true">
+                    pannable="true"
+                    styleClass="auth-scroll">
 
                 <content>
 
                     <VBox
                             alignment="CENTER"
                             spacing="14"
-                            VBox.vgrow="ALWAYS">
+                            fillWidth="true">
 
                         <padding>
-                            <Insets top="35" right="20" bottom="20" left="20"/>
+                            <Insets top="30" right="10" bottom="30" left="10"/>
                         </padding>
+
+                        <Label
+                                text="Register"
+                                style="-fx-font-size: 32; -fx-font-weight: bold;"/>
+
+                        <Label
+                                text="Create a new account"
+                                style="-fx-text-fill: #64748b; -fx-font-size: 15;"/>
+
+
                         <VBox
                                 fx:id="errorBox"
                                 visible="false"
                                 managed="false"
                                 spacing="6"
-                                maxWidth="380"
+                                maxWidth="420"
                                 styleClass="error-box">
 
                             <Label
-                                    text="Login Failed"
+                                    text="Registration Failed"
                                     styleClass="error-title"/>
 
                             <Label
                                     fx:id="errorLabel"
                                     wrapText="true"
                                     styleClass="error-message"/>
+
                         </VBox>
+
+
                         <VBox
                                 alignment="CENTER_LEFT"
                                 spacing="8"
-                                maxWidth="380">
+                                maxWidth="420">
 
                             <Label
                                     text="Username"
                                     styleClass="field-label"/>
 
                             <TextField
-                                    fx:id="loginEmailField"
-                                    promptText="Enter your email"
+                                    fx:id="usernameField"
+                                    promptText="Enter your username"
                                     prefHeight="48"/>
+
                         </VBox>
+
 
                         <VBox
                                 alignment="CENTER_LEFT"
                                 spacing="8"
-                                maxWidth="380">
+                                maxWidth="420">
 
                             <Label
                                     text="Password"
@@ -152,7 +158,7 @@
                                         HBox.hgrow="ALWAYS">
 
                                     <PasswordField
-                                            fx:id="loginPasswordField"
+                                            fx:id="passwordField"
                                             promptText="Enter your password"
                                             prefHeight="48"
                                             maxWidth="380"/>
@@ -177,56 +183,117 @@
 
                         </VBox>
 
-                        <HBox
-                                alignment="CENTER"
-                                maxWidth="380">
+                        <VBox
+                                alignment="CENTER_LEFT"
+                                spacing="8"
+                                maxWidth="420">
 
-                            <Hyperlink
-                                    text="Forgot password?"
-                                    styleClass="forgot-password-link"
-                                    onAction="#handleForgotPassword"/>
+                            <Label
+                                    text="Date of Birth"
+                                    styleClass="field-label"/>
 
-                        </HBox>
+                            <DatePicker
+                                    fx:id="datePicker"
+                                    prefHeight="48"
+                                    maxWidth="420"/>
+
+                        </VBox>
+
+                        <VBox
+                                alignment="CENTER_LEFT"
+                                spacing="8"
+                                maxWidth="420">
+
+                            <Label
+                                    text="Balance"
+                                    styleClass="field-label"/>
+
+                            <TextField
+                                    fx:id="balanceField"
+                                    promptText="Enter initial balance"
+                                    prefHeight="48"/>
+
+                        </VBox>
+
+                        <VBox
+                                alignment="CENTER_LEFT"
+                                spacing="8"
+                                maxWidth="420">
+
+                            <Label
+                                    text="Address"
+                                    styleClass="field-label"/>
+
+                            <TextField
+                                    fx:id="addressField"
+                                    promptText="Enter your address"
+                                    prefHeight="48"/>
+
+                        </VBox>
+
+                        <VBox
+                                alignment="CENTER_LEFT"
+                                spacing="8"
+                                maxWidth="420">
+
+                            <Label
+                                    text="Gender"
+                                    styleClass="field-label"/>
+
+                            <ComboBox
+                                    fx:id="genderBox"
+                                    prefHeight="48"
+                                    promptText="Select gender"
+                                    maxWidth="420"
+                                    styleClass="combo-box"/>
+
+                        </VBox>
+
 
                         <Button
-                                fx:id="loginButton"
-                                text="Login"
-                                prefWidth="380"
+                                text="Register"
+                                prefWidth="420"
                                 prefHeight="50"
                                 styleClass="auth-button"
-                                onAction="#handleLogin"/>
+                                onAction="#handleCreateAccount"/>
 
                         <HBox
                                 alignment="CENTER"
                                 spacing="12"
-                                maxWidth="380">
+                                maxWidth="420">
 
-                            <Separator prefWidth="140"/>
+                            <Separator prefWidth="150"/>
 
                             <Label text="or"/>
 
-                            <Separator prefWidth="140"/>
+                            <Separator prefWidth="150"/>
 
                         </HBox>
 
-                        <Button
-                                text="Create an account"
-                                prefWidth="380"
-                                prefHeight="50"
-                                styleClass="secondary-auth-button"
-                                onAction="#handleRegister"/>
+                        <!-- LOGIN LINK -->
 
-                        <Label
-                                text="© 2025 Hotel Management System. All rights reserved."
-                                styleClass="copyright-label"/>
+                        <HBox
+                                alignment="CENTER"
+                                spacing="5">
+
+                            <Label
+                                    text="Already have an account?"
+                                    style="-fx-text-fill: #64748b;"/>
+
+                            <Hyperlink
+                                    text="Login"
+                                    onAction="#handleBackToLogin"/>
+
+                        </HBox>
 
                     </VBox>
+
                 </content>
 
             </ScrollPane>
-            </Tab>
-                </tabs>
-            </TabPane>
+
         </VBox>
+
     </HBox>
+
 </StackPane>

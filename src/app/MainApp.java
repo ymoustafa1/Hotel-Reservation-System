@@ -1,5 +1,6 @@
 package app;
 
+import database.HotelDatabase;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -7,10 +8,12 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        initializeApp(stage);
-    }
+        SceneManager.setStage(stage);
+        initializeApp(stage);    }
+
 
     private void initializeApp(Stage stage) {
+        HotelDatabase.initializeDummyData();
         SceneManager.setStage(stage);
         stage.setTitle("Hotel Reservation System");
         stage.setMaximized(true);

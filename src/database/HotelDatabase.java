@@ -102,14 +102,18 @@ public class HotelDatabase
         staffMembers.clear();
         Reservation.resetCounter();
 
-        Amenity wifi    = new Amenity("WiFi",    AmenityType.ROOM,  100);
-        Amenity ac      = new Amenity("AC",      AmenityType.ROOM,  150);
-        Amenity tv      = new Amenity("TV",      AmenityType.ROOM,  300);
-        Amenity minibar = new Amenity("MiniBar", AmenityType.ROOM,  550);
-        Amenity spa     = new Amenity("Spa",     AmenityType.HOTEL, 1000);
-        Amenity pool    = new Amenity("Pool",    AmenityType.HOTEL, 870);
-        Amenity gym     = new Amenity("Gym",     AmenityType.HOTEL, 560);
-        Amenity buffet  = new Amenity("Lunch",   AmenityType.HOTEL, 300);
+        Random random = new Random();
+
+        Amenity wifi = new Amenity("WiFi", AmenityType.ROOM, 100);
+        Amenity ac = new Amenity("AC", AmenityType.ROOM, 150);
+        Amenity tv = new Amenity("TV", AmenityType.ROOM, 300);
+        Amenity minibar = new Amenity("MiniBar", AmenityType.ROOM, 550);
+        Amenity spa = new Amenity("Spa", AmenityType.HOTEL, 1000);
+        Amenity pool = new Amenity("Pool", AmenityType.HOTEL, 870);
+        Amenity gym = new Amenity("Gym", AmenityType.HOTEL, 560);
+        Amenity buffet = new Amenity("Lunch", AmenityType.HOTEL, 300);
+        Amenity parking = new Amenity("Parking", AmenityType.HOTEL, 200);
+        Amenity balcony = new Amenity("Balcony", AmenityType.ROOM, 250);
 
         amenities.add(wifi);
         amenities.add(ac);
@@ -119,64 +123,284 @@ public class HotelDatabase
         amenities.add(pool);
         amenities.add(gym);
         amenities.add(buffet);
+        amenities.add(parking);
+        amenities.add(balcony);
 
         RoomType single = new RoomType("Single", 500);
         single.addAmenity(wifi);
         single.addAmenity(ac);
-        single.addAmenity(buffet);
 
         RoomType doubleRoom = new RoomType("Double", 800);
         doubleRoom.addAmenity(wifi);
         doubleRoom.addAmenity(tv);
-        doubleRoom.addAmenity(ac);
-        doubleRoom.addAmenity(buffet);
-        doubleRoom.addAmenity(spa);
 
         RoomType suite = new RoomType("Suite", 1500);
         suite.addAmenity(wifi);
-        suite.addAmenity(ac);
         suite.addAmenity(tv);
         suite.addAmenity(minibar);
         suite.addAmenity(spa);
-        suite.addAmenity(gym);
-        suite.addAmenity(buffet);
-        suite.addAmenity(pool);
+
+        RoomType deluxe = new RoomType("Deluxe", 1200);
+        deluxe.addAmenity(wifi);
+        deluxe.addAmenity(pool);
+
+        RoomType king = new RoomType("King", 1800);
+        king.addAmenity(wifi);
+        king.addAmenity(minibar);
+
+        RoomType queen = new RoomType("Queen", 1600);
+        queen.addAmenity(tv);
+        queen.addAmenity(ac);
+
+        RoomType family = new RoomType("Family", 2000);
+        family.addAmenity(pool);
+        family.addAmenity(buffet);
+
+        RoomType economy = new RoomType("Economy", 400);
+        economy.addAmenity(wifi);
+
+        RoomType presidential = new RoomType("Presidential", 5000);
+        presidential.addAmenity(wifi);
+        presidential.addAmenity(tv);
+        presidential.addAmenity(spa);
+        presidential.addAmenity(pool);
+
+        RoomType business = new RoomType("Business", 1300);
+        business.addAmenity(wifi);
+        business.addAmenity(parking);
 
         roomTypes.add(single);
         roomTypes.add(doubleRoom);
         roomTypes.add(suite);
+        roomTypes.add(deluxe);
+        roomTypes.add(king);
+        roomTypes.add(queen);
+        roomTypes.add(family);
+        roomTypes.add(economy);
+        roomTypes.add(presidential);
+        roomTypes.add(business);
 
-        Room r1 = new Room(101, single);
-        Room r2 = new Room(102, doubleRoom);
-        Room r3 = new Room(201, suite);
+        int roomNumber = 102;
 
-        rooms.add(r1);
-        rooms.add(r2);
-        rooms.add(r3);
+        for (RoomType type : roomTypes) {
+
+            for (int i = 0; i < 10; i++) {
+
+                Room room = new Room(roomNumber++, type);
+                rooms.add(room);
+            }
+        }
+
+        String[] names = {
+                "Ahmed", "Mohamed", "Omar", "Ali",
+                "Mariam", "Sara", "Nour", "Salma", "Laila",
+                "Hassan", "Ibrahim", "Khaled", "Mostafa", "Karim",
+                "Ziad", "Malak", "Farah", "Hana", "Adam"
+        };
+
+        String[] addresses = {
+                "Cairo",
+                "Abaseya",
+                "Madinaty",
+                "Tagamo3",
+                "Maadi"
+        };
 
         // GUESTS
-        Guest g1 = new Guest("youssef", "1", LocalDate.of(2008, 4, 24), 7000, "Cairo", Gender.MALE);
-        Guest g2 = new Guest("kenzy", "12345678", LocalDate.of(2007, 6, 1), 7900, "Cairo", Gender.FEMALE);
+        for (int i = 1; i <= 100; i++) {
 
-        guests.add(g1);
-        guests.add(g2);
+            Gender gender;
+
+            if (random.nextBoolean()) {
+                gender = Gender.MALE;
+            } else {
+                gender = Gender.FEMALE;
+            }
+
+            String name =
+                    names[random.nextInt(names.length)];
+
+            String password = "pass123";
+
+            LocalDate birthDate = LocalDate.of(
+                    1985 + random.nextInt(20),
+                    1 + random.nextInt(12),
+                    1 + random.nextInt(28)
+            );
+
+            int nationalId =
+                    100000 + random.nextInt(900000);
+
+            String address =
+                    addresses[random.nextInt(addresses.length)];
+
+            Guest guest = new Guest(
+                    name,
+                    password,
+                    birthDate,
+                    nationalId,
+                    address,
+                    gender
+            );
+
+            guests.add(guest);
+        }
 
         // STAFF
-        Staff s1 = new Admin("admin1", "admin123");
-        Staff s2 = new Receptionist("rec1", "rec123");
-        staffMembers.add(s1);
-        staffMembers.add(s2);
+        for (int i = 1; i <= 10; i++) {
+
+            Admin admin = new Admin(
+                    "admin" + i,
+                    "admin123"
+            );
+
+            staffMembers.add(admin);
+        }
+
+        for (int i = 1; i <= 5; i++) {
+
+            Receptionist receptionist = new Receptionist(
+                    "rec" + i,
+                    "rec123"
+            );
+
+            staffMembers.add(receptionist);
+        }
 
         // RESERVATIONS
-        Reservation res1 = new Reservation(g2, r1, LocalDate.now(), LocalDate.now().plusDays(3));
-        Reservation res2 = new Reservation(g1, r2, LocalDate.now(), LocalDate.now().plusDays(3));
-        res1.setStatus(ReservationStatus.RESERVED);
-        res2.setStatus(ReservationStatus.RESERVED);
-        reservations.add(res1);
-        reservations.add(res2);
+        ReservationStatus[] statuses = {
+                ReservationStatus.RESERVED,
+                ReservationStatus.PENDING,
+                ReservationStatus.CANCELLED,
+                ReservationStatus.COMPLETED
+        };
+
+        Collections.shuffle(rooms);
+
+        for (int i = 0; i < 50; i++) {
+
+            Guest guest = guests.get(i);
+
+            Room room = rooms.get(i);
+
+            LocalDate checkIn =
+                    LocalDate.now().minusDays(
+                            random.nextInt(60)
+                    );
+
+            LocalDate checkOut =
+                    checkIn.plusDays(
+                            1 + random.nextInt(7)
+                    );
+
+            Reservation reservation = new Reservation(
+                    guest,
+                    room,
+                    checkIn,
+                    checkOut
+            );
+
+            reservation.setStatus(
+                    statuses[random.nextInt(statuses.length)]
+            );
+
+            reservations.add(reservation);
+        }
 
         // INVOICES
-        Invoice invoice = new Invoice(res1,PaymentMethod.CASH);
-        Invoice invoice1 = new Invoice(res1,PaymentMethod.CREDIT_CARD);
+        for (int i = 0; i < 70; i++) {
+
+            Reservation reservation =
+                    reservations.get(random.nextInt(reservations.size()));
+
+            PaymentMethod paymentMethod;
+
+            if (random.nextBoolean()) {
+
+                paymentMethod = PaymentMethod.CASH;
+
+            } else {
+
+                paymentMethod = PaymentMethod.CREDIT_CARD;
+            }
+
+            Invoice invoice = new Invoice(
+                    reservation,
+                    paymentMethod
+            );
+
+            invoices.add(invoice);
+        }
+        Guest showcaseGuest = new Guest(
+                "youssef",
+                "pass123",
+                LocalDate.of(2008, 4, 24),
+                777777,
+                "Madinaty",
+                Gender.MALE
+        );
+
+        guests.add(showcaseGuest);
+        for (int i = 50; i < 70; i++) {
+
+            Room room = rooms.get(i);
+
+            LocalDate checkIn =
+                    LocalDate.now().minusDays(
+                            random.nextInt(120)
+                    );
+
+            LocalDate checkOut =
+                    checkIn.plusDays(
+                            2 + random.nextInt(8)
+                    );
+
+            Reservation reservation = new Reservation(
+                    showcaseGuest,
+                    room,
+                    checkIn,
+                    checkOut
+            );
+
+            if (i % 4 == 0) {
+
+                reservation.setStatus(
+                        ReservationStatus.COMPLETED
+                );
+
+            } else if (i % 4 == 1) {
+
+                reservation.setStatus(
+                        ReservationStatus.RESERVED
+                );
+
+            } else if (i % 4 == 2) {
+
+                reservation.setStatus(
+                        ReservationStatus.PENDING
+                );
+
+            } else {
+
+                reservation.setStatus(
+                        ReservationStatus.CANCELLED
+                );
+            }
+
+            reservations.add(reservation);
+
+            Invoice invoice = new Invoice(
+                    reservation,
+                    random.nextBoolean()
+                            ? PaymentMethod.CASH
+                            : PaymentMethod.CREDIT_CARD
+            );
+
+            invoices.add(invoice);
+        }
+        Room r1 = new Room(101, single);
+        Reservation resbook = new Reservation(showcaseGuest, r1,LocalDate.now(), LocalDate.now().plusDays(14) );
+        rooms.add(r1);
+        reservations.add(resbook);
     }
 }
