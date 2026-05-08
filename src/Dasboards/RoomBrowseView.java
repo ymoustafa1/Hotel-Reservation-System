@@ -451,7 +451,7 @@ public class RoomBrowseView extends Application {
         card.setPrefWidth(320);
 
         card.getStyleClass()
-                .add("room-card");
+                .add("card");
 
         String imagePath = "/Single.jpg";
 
@@ -601,13 +601,6 @@ public class RoomBrowseView extends Application {
 
         btn.setMinHeight(50);
 
-        btn.setStyle(
-                "-fx-background-color: transparent;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 16;" +
-                        "-fx-alignment: center-left;" +
-                        "-fx-padding: 12 20 12 20;"
-        );
 
         return btn;
     }

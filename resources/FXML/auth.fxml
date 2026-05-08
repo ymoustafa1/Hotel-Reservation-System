@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<StackPane
+        xmlns:fx="http://javafx.com/fxml"
+        fx:controller="app.controllers.AuthController"
+        styleClass="login-background">
+
+    <HBox
+            alignment="CENTER"
+            maxWidth="1100"
+            maxHeight="650"
+            styleClass="login-card">
+
+        <StackPane
+                prefWidth="520"
+                style="-fx-background-radius: 18 0 0 18;">
+
+            <ImageView
+                    fitWidth="520"
+                    fitHeight="650"
+                    preserveRatio="false">
+
+                <image>
+                    <Image url="@/hotel.jpg"/>
+                </image>
+
+            </ImageView>
+
+            <Region
+                    style="
+            -fx-background-color:
+            linear-gradient(
+                to bottom right,
+                rgba(15,23,42,0.82),
+                rgba(30,58,95,0.75)
+            );
+            "/>
+
+            <VBox
+                    alignment="CENTER_LEFT"
+                    spacing="18"
+                    maxWidth="320">
+
+                <Label
+                        text="Welcome to"
+                        style="-fx-text-fill: white; -fx-font-size: 26;"/>
+
+                <Label
+                        text="Hotel&#10;Management&#10;System"
+                        style="-fx-text-fill: white; -fx-font-size: 54; -fx-font-weight: bold;"/>
+
+                <Separator prefWidth="80"/>
+
+                <Label
+                        wrapText="true"
+                        text="Manage your hotel operations with ease and efficiency."
+                        style="-fx-text-fill: white; -fx-font-size: 18;"/>
+
+            </VBox>
+
+        </StackPane>
+
+        <VBox
+                alignment="CENTER"
+                spacing="20"
+                prefWidth="580">
+
+            <padding>
+                <Insets top="50" right="70" bottom="50" left="70"/>
+            </padding>
+
+            <TabPane
+                    tabClosingPolicy="UNAVAILABLE"
+                    maxWidth="460"
+                    prefHeight="540">
+
+                <tabs>
+
+                    <Tab text="Login">
+
+                        <VBox
+                                alignment="TOP_CENTER"
+                                spacing="22">
+
+                            <padding>
+                                <Insets top="35" right="20" bottom="20" left="20"/>
+                            </padding>
+
+                            <VBox
+                                    alignment="CENTER_LEFT"
+                                    spacing="8"
+                                    maxWidth="380">
+
+                                <Label
+                                        text="Email"
+                                        styleClass="field-label"/>
+
+                                <TextField
+                                        fx:id="loginEmailField"
+                                        promptText="Enter your email"
+                                        prefHeight="48"/>
+                            </VBox>
+
+                            <VBox
+                                    alignment="CENTER_LEFT"
+                                    spacing="8"
+                                    maxWidth="380">
+
+                                <Label
+                                        text="Password"
+                                        styleClass="field-label"/>
+
+                                <PasswordField
+                                        fx:id="loginPasswordField"
+                                        promptText="Enter your password"
+                                        prefHeight="48"/>
+                            </VBox>
+
+                            <HBox
+                                    alignment="CENTER"
+                                    spacing="70"
+                                    maxWidth="380">
+
+                                <CheckBox text="Remember me"/>
+
+                                <Hyperlink
+                                        text="Forgot password?"
+                                        styleClass="forgot-password-link"/>
+
+                            </HBox>
+
+                            <Button
+                                    text="Login"
+                                    prefWidth="380"
+                                    prefHeight="50"
+                                    styleClass="auth-button"
+                                    onAction="#handleLogin"/>
+
+                            <HBox
+                                    alignment="CENTER"
+                                    spacing="12"
+                                    maxWidth="380">
+
+                                <Separator prefWidth="140"/>
+
+                                <Label text="or"/>
+
+                                <Separator prefWidth="140"/>
+
+                            </HBox>
+
+                            <Button
+                                    text="Create an account"
+                                    prefWidth="380"
+                                    prefHeight="50"
+                                    styleClass="secondary-auth-button"/>
+
+                            <Label
+                                    text="© 2025 Hotel Management System. All rights reserved."
+                                    styleClass="copyright-label"/>
+
+                        </VBox>
+
+                    </Tab>
+
+
+                </tabs>
+
+            </TabPane>
+
+        </VBox>
+
+    </HBox>
+
+</StackPane>
