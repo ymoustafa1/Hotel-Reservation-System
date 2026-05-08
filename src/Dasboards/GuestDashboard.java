@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class GuestDashboard extends Application {
+public class GuestDashboard extends Application  {
     private Guest guest;
 
     public GuestDashboard() {}
@@ -88,7 +88,7 @@ public class GuestDashboard extends Application {
         HBox topRightDetails = new HBox(15);
         topRightDetails.setAlignment(Pos.CENTER_RIGHT);
 
-        ImageView bellIcon = new ImageView(new Image(getClass().getResourceAsStream("/home.png"))); // Replace with bell icon if available
+        ImageView bellIcon = new ImageView(new Image(getClass().getResourceAsStream("/notification.png")));
         bellIcon.setFitWidth(25);
         bellIcon.setFitHeight(25);
 
@@ -110,7 +110,7 @@ public class GuestDashboard extends Application {
         statsBox.getChildren().addAll(
                 createStatCard("Current Balance", "$" + guest.getBalance(), "/wallet.png"),
                 createStatCard("Active Reservations", String.valueOf(getActiveReservations().size()), "/calendar.png"),
-                createStatCard("Total Invoices", "5", "/invoice.jpg"),
+                createStatCard("Total Invoices", "5", "/invoice.png"),
                 createStatCard("Loyalty Points", "1,240", "/home.png") // Added Loyalty Points
         );
         centerArea.getChildren().add(statsBox);
@@ -215,6 +215,8 @@ public class GuestDashboard extends Application {
         GuestDashboardStage.setTitle("Guest Dashboard");
         GuestDashboardStage.show();
     }
+
+
 
     private Label createTableCell(String text) {
         Label l = new Label(text);
@@ -364,6 +366,7 @@ public class GuestDashboard extends Application {
         row.getChildren().addAll(texts, spacer, arrow);
         return row;
     }
+
 
     void addIconText(Pane pane, String string, String iconPath) {
         HBox h = new HBox(15);
