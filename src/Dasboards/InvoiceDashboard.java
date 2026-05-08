@@ -174,7 +174,8 @@ import java.util.ArrayList;
             Label title = new Label("Invoices");
             title.getStyleClass().add("section-title");
             TableView<Invoice> table = new TableView<>();
-
+            container.setFillWidth(true);
+            VBox.setVgrow(table, Priority.ALWAYS);
             // ID
             TableColumn<Invoice, String> idCol = new TableColumn<>("Invoice ID");
             idCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>() {
@@ -191,6 +192,14 @@ import java.util.ArrayList;
                 public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
                 {return new SimpleStringProperty(data.getValue().getReservation().getRoom().getRoomType().getName());}
             });
+
+            // CHECK IN
+            TableColumn<Invoice, String> checkInCol = new TableColumn<>("Check In");
+            checkInCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getReservation().getCheckInDate().toString()));
+
+            // CHECK OUT
+            TableColumn<Invoice, String> checkOutCol = new TableColumn<>("Check Out");
+            checkOutCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getReservation().getCheckOutDate().toString()));
 
             // AMOUNT
             TableColumn<Invoice, String> amountCol = new TableColumn<>("Amount");
@@ -251,7 +260,10 @@ import java.util.ArrayList;
                     };
                 }
             });
-            table.getColumns().addAll(idCol, roomCol, amountCol, methodCol, statusCol, actionCol);
+            table.getColumns().addAll(idCol, roomCol, checkInCol, checkOutCol, amountCol, methodCol, statusCol, actionCol);
+
+            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+            table.setPrefWidth(Double.MAX_VALUE);
 
             // DATA
             ArrayList<Invoice> list = new ArrayList<>();
