@@ -50,7 +50,7 @@ import java.util.ArrayList;
             root.setCenter(createMain());
             stage.setScene(scene);
             stage.setTitle("Invoice Dashboard");
-            stage.setResizable(false);
+            stage.setMaximized(true);
             stage.show();
         }
 

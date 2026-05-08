@@ -47,7 +47,7 @@ public class PaymentAndCheckout extends Application {
 
         stage.setScene(scene);
         stage.setTitle("Payment & Checkout");
-        stage.setResizable(false);
+        stage.setMaximized(true);
         stage.show();
     }
 
