@@ -1,5 +1,7 @@
 package util;
 
+import Dasboards.GuestChatDashboard;
+import Dasboards.ReceptionistChatDashboard;
 import app.SceneManager;
 import app.SessionManager;
 import javafx.geometry.Insets;
@@ -88,6 +90,8 @@ public class SidebarGuest {
         Button logoutBtn = createButton("Logout", "/exit.png");
         logoutBtn.setOnAction(e -> {
             SessionManager.logout();
+            GuestChatDashboard.closeWindow();
+            ReceptionistChatDashboard.closeWindow();
             SceneManager.switchScene("/FXML/auth.fxml");
         });
 

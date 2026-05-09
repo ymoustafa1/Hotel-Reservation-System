@@ -103,8 +103,8 @@ public class Guest  {
                 throw new AuthenticationException("Very short Password");
             }
 
-            HotelDatabase.guests.add(this);
-
+        HotelDatabase.guests.add(this);
+        HotelDatabase.insertGuest(this);
 
     }
     //uses authentication service  class login method to login
@@ -136,6 +136,7 @@ public class Guest  {
         }
         Reservation reservation = new Reservation(this ,room, start , end);
         HotelDatabase.reservations.add(reservation);
+        HotelDatabase.insertReservation(reservation);
         return reservation;
     }
 

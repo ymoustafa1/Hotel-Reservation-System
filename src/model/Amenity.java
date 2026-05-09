@@ -10,6 +10,8 @@ public class Amenity {
     private String name;
     private AmenityType type;
     private double price;
+    private String imagePath;
+
 
     public Amenity(){}
     public Amenity(String name, AmenityType type, double price){
@@ -68,5 +70,15 @@ public class Amenity {
     @Override
     public String toString() {
         return name;
+    }
+
+    public String getImagePath() {
+
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+
+        this.imagePath = imagePath;
     }
 }

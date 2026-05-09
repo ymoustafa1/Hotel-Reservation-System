@@ -44,7 +44,10 @@ public class ForgotPasswordController {
 
         try {
 
-            String username = usernameField.getText().trim();
+            String username =
+                    usernameField.getText()
+                            .trim()
+                            .toLowerCase();
 
             if (username.isBlank()) {
 
@@ -57,7 +60,10 @@ public class ForgotPasswordController {
 
             for (Guest guest : HotelDatabase.guests) {
 
-                if (guest.getUsername().equals(username)) {
+                if (guest.getUsername()
+                        .trim()
+                        .toLowerCase()
+                        .equals(username)) {
 
                     foundGuest = guest;
                     break;

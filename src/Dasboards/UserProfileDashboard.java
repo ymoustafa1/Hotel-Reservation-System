@@ -2,7 +2,6 @@ package Dasboards;
 
 import app.SceneManager;
 import database.HotelDatabase;
-//import Dasboards.SupportDashboard;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -177,6 +176,7 @@ public class UserProfileDashboard extends Application {
         balanceCard.getChildren().addAll(balanceTitle, balance, balanceActions);
         centerArea.getChildren().add(balanceCard);
 
+        // ── Support Chat Card ────────────────────────────────────────────────
         VBox supportCard = new VBox(15);
         supportCard.getStyleClass().add("card");
         supportCard.setStyle("-fx-cursor: default;");
@@ -190,11 +190,22 @@ public class UserProfileDashboard extends Application {
 
         Button supportBtn = new Button("Open Chat Support");
         supportBtn.getStyleClass().add("button");
-//        supportBtn.setOnAction(e -> SceneManager.switchToDashboard(new SupportDashboard(guest)));
+
+        // ▶ Wire button to GuestChatDashboard
+        supportBtn.setOnAction(e -> {
+            GuestChatDashboard chatDashboard = new GuestChatDashboard(guest);
+            Stage chatStage = new Stage();
+            try {
+                chatDashboard.start(chatStage);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
         supportCard.getChildren().addAll(supportTitle, supportSub, supportBtn);
         centerArea.getChildren().add(supportCard);
 
+        // ── Edit Profile Popup ───────────────────────────────────────────────
         editBtn.setOnAction(e -> {
             Stage popup = new Stage();
 

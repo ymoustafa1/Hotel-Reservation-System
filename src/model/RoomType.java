@@ -11,6 +11,7 @@ public class RoomType{
     private String name;
     private double basePrice;
     private ArrayList<Amenity> amenities;
+    private String imagePath;
 
 
     public RoomType(){
@@ -64,5 +65,12 @@ public class RoomType{
     @Override
     public String toString(){
         return name;
+    }
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

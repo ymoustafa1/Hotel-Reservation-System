@@ -8,10 +8,12 @@ import java.util.ArrayList;
 
 public class Receptionist extends Staff
 {
-    public Receptionist(String name,String pass)
+    private int workingHours;
+    public Receptionist(String name,String pass,int workingHours)
     {
         //adding a new staff member of role receptionist
         super(name,pass,Role.RECEPTIONIST);
+        this.workingHours = workingHours;
     }
 
     //methods for checking in and out by validating then calling already implemented methods in Reservation class
@@ -27,5 +29,10 @@ public class Receptionist extends Staff
         if(r==null)
             throw new InvalidInputException("Reservation cant be null");
         r.complete();
+    }
+
+    @Override
+    public String getWorkingHours() {
+        return String.valueOf(workingHours);
     }
 }

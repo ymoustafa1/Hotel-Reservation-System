@@ -10,5 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="lib" level="project" />
     <orderEntry type="library" name="javafx-sdk-21.0" level="application" />
+    <orderEntry type="library" name="sqlite-jdbc-3.53.1.0" level="project" />
   </component>
 </module>
