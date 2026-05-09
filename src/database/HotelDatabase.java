@@ -1,57 +1,854 @@
 package database;
-import java.util.*;
-import java.time.*;
+
 import model.*;
 
+import java.sql.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
 
-public class HotelDatabase
-{
-    public static ArrayList<Guest> guests = new ArrayList<>();
-    public static ArrayList<Room> rooms = new ArrayList<>();
-    public static ArrayList<Reservation> reservations = new ArrayList<>();
-    public static ArrayList<Invoice> invoices = new ArrayList<>();
-    public static ArrayList<RoomType> roomTypes = new ArrayList<>();
-    public static ArrayList<Amenity> amenities = new ArrayList<>();
-    public static ArrayList<Staff> staffMembers = new ArrayList<>();
+public class HotelDatabase {
+
+    // =========================================================
+    // DATABASE
+    // =========================================================
+
+    private static final String URL =
+            "jdbc:sqlite:hotel.db?busy_timeout=5000";
+
+    // =========================================================
+    // IN-MEMORY CACHE
+    // =========================================================
+
+    public static ArrayList<Guest> guests =
+            new ArrayList<>();
+
+    public static ArrayList<Room> rooms =
+            new ArrayList<>();
+
+    public static ArrayList<Reservation> reservations =
+            new ArrayList<>();
+
+    public static ArrayList<Invoice> invoices =
+            new ArrayList<>();
+
+    public static ArrayList<RoomType> roomTypes =
+            new ArrayList<>();
+
+    public static ArrayList<Amenity> amenities =
+            new ArrayList<>();
+
+    public static ArrayList<Staff> staffMembers =
+            new ArrayList<>();
 
     private HotelDatabase() {}
 
-    public static Guest findGuest(String username){
-        for (Guest g: guests) {
-            if (g.getUsername().equalsIgnoreCase(username)) {
+    // =========================================================
+    // CONNECTION
+    // =========================================================
+
+    public static Connection connect()
+            throws SQLException {
+
+        try {
+
+            Class.forName(
+                    "org.sqlite.JDBC"
+            );
+
+        } catch (ClassNotFoundException e) {
+
+            e.printStackTrace();
+        }
+
+        return DriverManager
+                .getConnection(URL);
+    }
+
+    // =========================================================
+    // INITIALIZE DATABASE
+    // =========================================================
+
+    public static void initializeDatabase() {
+
+        try (
+                Connection conn = connect();
+                Statement stmt = conn.createStatement()
+        ) {
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS guests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE,
+                    password TEXT,
+                    birth_date TEXT,
+                    national_id INTEGER,
+                    address TEXT,
+                    gender TEXT
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS staff (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE,
+                    password TEXT,
+                    role TEXT,
+                    working_hours INTEGER
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS room_types (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT UNIQUE,
+                    price REAL
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS rooms (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    room_number INTEGER UNIQUE,
+                    room_type_name TEXT
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS reservations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    guest_username TEXT,
+                    room_number INTEGER,
+                    check_in TEXT,
+                    check_out TEXT,
+                    status TEXT
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS invoices (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    reservation_id INTEGER,
+                    payment_method TEXT
+                )
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS amenities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT UNIQUE,
+                    type TEXT,
+                    price REAL
+                )
+            """);
+
+            System.out.println(
+                    "Database initialized."
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // SEED DATA
+    // =========================================================
+
+    public static void insertSeedData() {
+
+        try (
+                Connection conn = connect();
+                Statement stmt = conn.createStatement()
+        ) {
+
+            ResultSet rs = stmt.executeQuery(
+                    "SELECT COUNT(*) FROM staff"
+            );
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                return;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // =====================================================
+        // CLEAR MEMORY
+        // =====================================================
+
+        amenities.clear();
+        roomTypes.clear();
+        rooms.clear();
+        guests.clear();
+        staffMembers.clear();
+        reservations.clear();
+        invoices.clear();
+
+        // =====================================================
+        // AMENITIES
+        // =====================================================
+
+        Amenity wifi =
+                new Amenity(
+                        "WiFi",
+                        AmenityType.ROOM,
+                        100
+                );
+
+        Amenity ac =
+                new Amenity(
+                        "AC",
+                        AmenityType.ROOM,
+                        150
+                );
+
+        Amenity pool =
+                new Amenity(
+                        "Pool",
+                        AmenityType.HOTEL,
+                        800
+                );
+
+        amenities.add(wifi);
+        amenities.add(ac);
+        amenities.add(pool);
+
+        // =====================================================
+        // ROOM TYPES
+        // =====================================================
+
+        RoomType single =
+                new RoomType(
+                        "Single",
+                        500
+                );
+
+        RoomType deluxe =
+                new RoomType(
+                        "Deluxe",
+                        1500
+                );
+
+        roomTypes.add(single);
+        roomTypes.add(deluxe);
+
+        // =====================================================
+        // ROOMS
+        // =====================================================
+
+        Room r1 =
+                new Room(101, single);
+
+        Room r2 =
+                new Room(102, single);
+
+        Room r3 =
+                new Room(201, deluxe);
+
+        rooms.add(r1);
+        rooms.add(r2);
+        rooms.add(r3);
+
+        // =====================================================
+        // GUESTS
+        // =====================================================
+
+        Guest youssef =
+                new Guest(
+                        "youssef",
+                        "pass123",
+                        LocalDate.of(
+                                2008,
+                                4,
+                                24
+                        ),
+                        777777,
+                        "Madinaty",
+                        Gender.MALE
+                );
+
+        Guest ahmed =
+                new Guest(
+                        "ahmed",
+                        "pass123",
+                        LocalDate.of(
+                                2000,
+                                5,
+                                12
+                        ),
+                        123456,
+                        "Cairo",
+                        Gender.MALE
+                );
+
+        guests.add(youssef);
+        guests.add(ahmed);
+
+        // =====================================================
+        // STAFF
+        // =====================================================
+
+        Admin admin =
+                new Admin(
+                        "admin1",
+                        "admin123"
+                );
+
+        Receptionist rec =
+                new Receptionist(
+                        "rec1",
+                        "rec123",
+                        8
+                );
+
+        staffMembers.add(admin);
+        staffMembers.add(rec);
+
+        // =====================================================
+        // RESERVATIONS
+        // =====================================================
+
+        Reservation reservation =
+                new Reservation(
+                        youssef,
+                        r1,
+                        LocalDate.now(),
+                        LocalDate.now()
+                                .plusDays(5)
+                );
+
+        reservation.setStatus(
+                ReservationStatus.RESERVED
+        );
+
+        reservations.add(reservation);
+
+        // =====================================================
+        // INVOICES
+        // =====================================================
+
+        Invoice invoice =
+                new Invoice(
+                        reservation,
+                        PaymentMethod.CASH
+                );
+
+        invoices.add(invoice);
+
+        // =====================================================
+        // SAVE TO SQLITE
+        // =====================================================
+
+        saveAllData();
+
+        System.out.println(
+                "Seed data inserted."
+        );
+    }
+    public static void saveAllData() {
+
+        for (Amenity a : amenities) {
+            insertAmenity(a);
+        }
+
+        for (RoomType rt : roomTypes) {
+            insertRoomType(rt);
+        }
+
+        for (Room r : rooms) {
+            insertRoom(r);
+        }
+
+        for (Guest g : guests) {
+            insertGuest(g);
+        }
+
+        for (Staff s : staffMembers) {
+
+            if (s instanceof Receptionist) {
+
+                Receptionist r =
+                        (Receptionist) s;
+
+                insertStaff(
+                        r,
+                        Integer.valueOf(r.getWorkingHours())
+                );
+
+            } else {
+
+                insertStaff(s, 0);
+            }
+        }
+
+        for (Reservation r : reservations) {
+            insertReservation(r);
+        }
+
+        for (Invoice i : invoices) {
+            insertInvoice(i);
+        }
+    }
+    // =========================================================
+    // LOAD DATABASE INTO MEMORY
+    // =========================================================
+
+    public static void loadData() {
+
+        loadAmenities();
+        loadRoomTypes();
+        loadRooms();
+        loadGuests();
+        loadStaff();
+        loadReservations();
+    }
+
+    // =========================================================
+    // INSERT METHODS
+    // =========================================================
+
+    public static void insertGuest(Guest guest) {
+
+        String sql = """
+            INSERT INTO guests
+            (username, password,
+             birth_date, national_id,
+             address, gender)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setString(
+                    1,
+                    guest.getUsername()
+            );
+
+            pstmt.setString(
+                    2,
+                    guest.getPassword()
+            );
+
+            pstmt.setString(
+                    3,
+                    guest.getDateOfBirth()
+                            .toString()
+            );
+
+
+            pstmt.setString(
+                    5,
+                    guest.getAddress()
+            );
+
+            pstmt.setString(
+                    6,
+                    guest.getGender()
+                            .name()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertRoom(Room room) {
+
+        String sql = """
+            INSERT INTO rooms
+            (room_number, room_type_name)
+            VALUES (?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setInt(
+                    1,
+                    room.getRoomId()
+            );
+
+            pstmt.setString(
+                    2,
+                    room.getRoomType()
+                            .getName()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertRoomType(
+            RoomType roomType
+    ) {
+
+        String sql = """
+            INSERT INTO room_types
+            (name, price)
+            VALUES (?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setString(
+                    1,
+                    roomType.getName()
+            );
+
+            pstmt.setDouble(
+                    2,
+                    roomType.getBasePrice()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertAmenity(
+            Amenity amenity
+    ) {
+
+        String sql = """
+            INSERT INTO amenities
+            (name, type, price)
+            VALUES (?, ?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setString(
+                    1,
+                    amenity.getName()
+            );
+
+            pstmt.setString(
+                    2,
+                    amenity.getType()
+                            .name()
+            );
+
+            pstmt.setDouble(
+                    3,
+                    amenity.getPrice()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertReservation(
+            Reservation reservation
+    ) {
+
+        String sql = """
+            INSERT INTO reservations
+            (guest_username,
+             room_number,
+             check_in,
+             check_out,
+             status)
+            VALUES (?, ?, ?, ?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setString(
+                    1,
+                    reservation.getGuest()
+                            .getUsername()
+            );
+
+            pstmt.setInt(
+                    2,
+                    reservation.getRoom()
+                            .getRoomId()
+            );
+
+            pstmt.setString(
+                    3,
+                    reservation.getCheckInDate()
+                            .toString()
+            );
+
+            pstmt.setString(
+                    4,
+                    reservation.getCheckOutDate()
+                            .toString()
+            );
+
+            pstmt.setString(
+                    5,
+                    reservation.getStatus()
+                            .name()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertInvoice(
+            Invoice invoice
+    ) {
+
+        String sql = """
+            INSERT INTO invoices
+            (reservation_id,
+             payment_method)
+            VALUES (?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setInt(
+                    1,
+                    invoice.getReservation()
+                            .getReservationId()
+            );
+
+            pstmt.setString(
+                    2,
+                    invoice.getPaymentMethod()
+                            .name()
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void insertStaff(
+            Staff staff,
+            int hours
+    ) {
+
+        String role;
+
+        if (staff instanceof Admin) {
+            role = "ADMIN";
+        } else {
+            role = "RECEPTIONIST";
+        }
+
+        String sql = """
+            INSERT INTO staff
+            (username,
+             password,
+             role,
+             working_hours)
+            VALUES (?, ?, ?, ?)
+        """;
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            pstmt.setString(
+                    1,
+                    staff.getUsername()
+            );
+
+            pstmt.setString(
+                    2,
+                    staff.getPassword()
+            );
+
+            pstmt.setString(
+                    3,
+                    role
+            );
+
+            pstmt.setInt(
+                    4,
+                    hours
+            );
+
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // =========================================================
+    // LOAD METHODS
+    // =========================================================
+
+    public static void loadGuests() {
+
+        guests.clear();
+
+        String sql =
+                "SELECT * FROM guests";
+
+        try (
+                Connection conn = connect();
+                PreparedStatement pstmt =
+                        conn.prepareStatement(sql)
+        ) {
+
+            ResultSet rs =
+                    pstmt.executeQuery();
+
+            while (rs.next()) {
+
+                Guest guest =
+                        new Guest(
+                                rs.getString(
+                                        "username"
+                                ),
+                                rs.getString(
+                                        "password"
+                                ),
+                                LocalDate.parse(
+                                        rs.getString(
+                                                "birth_date"
+                                        )
+                                ),
+                                rs.getInt(
+                                        "national_id"
+                                ),
+                                rs.getString(
+                                        "address"
+                                ),
+                                Gender.valueOf(
+                                        rs.getString(
+                                                "gender"
+                                        )
+                                )
+                        );
+
+                guests.add(guest);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadRoomTypes() {}
+
+    public static void loadRooms() {}
+
+    public static void loadReservations() {}
+
+    public static void loadAmenities() {}
+
+    public static void loadStaff() {}
+
+    // =========================================================
+    // FIND METHODS
+    // =========================================================
+
+    public static Guest findGuest(
+            String username
+    ) {
+
+        for (Guest g : guests) {
+
+            if (
+                    g.getUsername()
+                            .equalsIgnoreCase(
+                                    username
+                            )
+            ) {
                 return g;
             }
         }
-            return null;
+
+        return null;
     }
 
-    public static Staff findStaff(String username){
-        for (Staff s: staffMembers) {
-            if (s.getUsername().equalsIgnoreCase(username)) {
+    public static Staff findStaff(
+            String username
+    ) {
+
+        for (Staff s : staffMembers) {
+
+            if (
+                    s.getUsername()
+                            .equalsIgnoreCase(
+                                    username
+                            )
+            ) {
                 return s;
             }
         }
+
         return null;
     }
 
-    public static Room findRoomById(int id){
-        for (Room r: rooms) {
-            if (id == r.getRoomId()) {
+    public static Room findRoomById(
+            int id
+    ) {
+
+        for (Room r : rooms) {
+
+            if (r.getRoomId() == id) {
                 return r;
             }
         }
+
         return null;
     }
 
-    public static Reservation findReservationById(int id){
-        for (Reservation r: reservations) {
-            if (id == r.getReservationId()) {
+    public static Reservation findReservationById(
+            int id
+    ) {
+
+        for (Reservation r : reservations) {
+
+            if (
+                    r.getReservationId()
+                            == id
+            ) {
                 return r;
             }
         }
+
         return null;
     }
-
     public static ArrayList<Reservation> findReservationsByGuest(Guest g)
     {
         ArrayList<Reservation> result = new ArrayList<>();
@@ -66,341 +863,56 @@ public class HotelDatabase
 
         return result;
     }
-    public static RoomType findRoomType(String name){
-        for (RoomType r: roomTypes) {
-            if (r.getName().equalsIgnoreCase(name)) {
+
+    public static RoomType findRoomType(
+            String name
+    ) {
+
+        for (RoomType r : roomTypes) {
+
+            if (
+                    r.getName()
+                            .equalsIgnoreCase(
+                                    name
+                            )
+            ) {
                 return r;
             }
         }
+
         return null;
     }
 
-    public static Amenity findAmenity(String name){
-        for (Amenity a: amenities){
-            if (a.getName().equalsIgnoreCase(name)){
+    public static Amenity findAmenity(
+            String name
+    ) {
+
+        for (Amenity a : amenities) {
+
+            if (
+                    a.getName()
+                            .equalsIgnoreCase(
+                                    name
+                            )
+            ) {
                 return a;
             }
         }
+
         return null;
     }
 
-    public static boolean validateDates(LocalDate checkInDate, LocalDate checkOutDate)
-    {
-        return checkInDate.isBefore(checkOutDate);
-    }
+    // =========================================================
+    // VALIDATION
+    // =========================================================
 
+    public static boolean validateDates(
+            LocalDate checkInDate,
+            LocalDate checkOutDate
+    ) {
 
-
-    public static void initializeDummyData() {
-
-        guests.clear();
-        rooms.clear();
-        reservations.clear();
-        invoices.clear();
-        roomTypes.clear();
-        amenities.clear();
-        staffMembers.clear();
-        Reservation.resetCounter();
-
-        Random random = new Random();
-
-        Amenity wifi = new Amenity("WiFi", AmenityType.ROOM, 100);
-        Amenity ac = new Amenity("AC", AmenityType.ROOM, 150);
-        Amenity tv = new Amenity("TV", AmenityType.ROOM, 300);
-        Amenity minibar = new Amenity("MiniBar", AmenityType.ROOM, 550);
-        Amenity spa = new Amenity("Spa", AmenityType.HOTEL, 1000);
-        Amenity pool = new Amenity("Pool", AmenityType.HOTEL, 870);
-        Amenity gym = new Amenity("Gym", AmenityType.HOTEL, 560);
-        Amenity buffet = new Amenity("Lunch", AmenityType.HOTEL, 300);
-        Amenity parking = new Amenity("Parking", AmenityType.HOTEL, 200);
-        Amenity balcony = new Amenity("Balcony", AmenityType.ROOM, 250);
-
-        amenities.add(wifi);
-        amenities.add(ac);
-        amenities.add(tv);
-        amenities.add(minibar);
-        amenities.add(spa);
-        amenities.add(pool);
-        amenities.add(gym);
-        amenities.add(buffet);
-        amenities.add(parking);
-        amenities.add(balcony);
-
-        RoomType single = new RoomType("Single", 500);
-        single.addAmenity(wifi);
-        single.addAmenity(ac);
-
-        RoomType doubleRoom = new RoomType("Double", 800);
-        doubleRoom.addAmenity(wifi);
-        doubleRoom.addAmenity(tv);
-
-        RoomType suite = new RoomType("Suite", 1500);
-        suite.addAmenity(wifi);
-        suite.addAmenity(tv);
-        suite.addAmenity(minibar);
-        suite.addAmenity(spa);
-
-        RoomType deluxe = new RoomType("Deluxe", 1200);
-        deluxe.addAmenity(wifi);
-        deluxe.addAmenity(pool);
-
-        RoomType king = new RoomType("King", 1800);
-        king.addAmenity(wifi);
-        king.addAmenity(minibar);
-
-        RoomType queen = new RoomType("Queen", 1600);
-        queen.addAmenity(tv);
-        queen.addAmenity(ac);
-
-        RoomType family = new RoomType("Family", 2000);
-        family.addAmenity(pool);
-        family.addAmenity(buffet);
-
-        RoomType economy = new RoomType("Economy", 400);
-        economy.addAmenity(wifi);
-
-        RoomType presidential = new RoomType("Presidential", 5000);
-        presidential.addAmenity(wifi);
-        presidential.addAmenity(tv);
-        presidential.addAmenity(spa);
-        presidential.addAmenity(pool);
-
-        RoomType business = new RoomType("Business", 1300);
-        business.addAmenity(wifi);
-        business.addAmenity(parking);
-
-        roomTypes.add(single);
-        roomTypes.add(doubleRoom);
-        roomTypes.add(suite);
-        roomTypes.add(deluxe);
-        roomTypes.add(king);
-        roomTypes.add(queen);
-        roomTypes.add(family);
-        roomTypes.add(economy);
-        roomTypes.add(presidential);
-        roomTypes.add(business);
-
-        int roomNumber = 102;
-
-        for (RoomType type : roomTypes) {
-
-            for (int i = 0; i < 10; i++) {
-
-                Room room = new Room(roomNumber++, type);
-                rooms.add(room);
-            }
-        }
-
-        String[] names = {
-                "Ahmed", "Mohamed", "Omar", "Ali",
-                "Mariam", "Sara", "Nour", "Salma", "Laila",
-                "Hassan", "Ibrahim", "Khaled", "Mostafa", "Karim",
-                "Ziad", "Malak", "Farah", "Hana", "Adam"
-        };
-
-        String[] addresses = {
-                "Cairo",
-                "Abaseya",
-                "Madinaty",
-                "Tagamo3",
-                "Maadi"
-        };
-
-        // GUESTS
-        for (int i = 1; i <= 100; i++) {
-
-            Gender gender;
-
-            if (random.nextBoolean()) {
-                gender = Gender.MALE;
-            } else {
-                gender = Gender.FEMALE;
-            }
-
-            String name =
-                    names[random.nextInt(names.length)];
-
-            String password = "pass123";
-
-            LocalDate birthDate = LocalDate.of(
-                    1985 + random.nextInt(20),
-                    1 + random.nextInt(12),
-                    1 + random.nextInt(28)
-            );
-
-            int nationalId =
-                    100000 + random.nextInt(900000);
-
-            String address =
-                    addresses[random.nextInt(addresses.length)];
-
-            Guest guest = new Guest(
-                    name,
-                    password,
-                    birthDate,
-                    nationalId,
-                    address,
-                    gender
-            );
-
-            guests.add(guest);
-        }
-
-        // STAFF
-        for (int i = 1; i <= 10; i++) {
-
-            Admin admin = new Admin(
-                    "admin" + i,
-                    "admin123"
-            );
-
-            staffMembers.add(admin);
-        }
-
-        for (int i = 1; i <= 5; i++) {
-
-            Receptionist receptionist = new Receptionist(
-                    "rec" + i,
-                    "rec123"
-            );
-
-            staffMembers.add(receptionist);
-        }
-
-        // RESERVATIONS
-        ReservationStatus[] statuses = {
-                ReservationStatus.RESERVED,
-                ReservationStatus.PENDING,
-                ReservationStatus.CANCELLED,
-                ReservationStatus.COMPLETED
-        };
-
-        Collections.shuffle(rooms);
-
-        for (int i = 0; i < 50; i++) {
-
-            Guest guest = guests.get(i);
-
-            Room room = rooms.get(i);
-
-            LocalDate checkIn =
-                    LocalDate.now().minusDays(
-                            random.nextInt(60)
-                    );
-
-            LocalDate checkOut =
-                    checkIn.plusDays(
-                            1 + random.nextInt(7)
-                    );
-
-            Reservation reservation = new Reservation(
-                    guest,
-                    room,
-                    checkIn,
-                    checkOut
-            );
-
-            reservation.setStatus(
-                    statuses[random.nextInt(statuses.length)]
-            );
-
-            reservations.add(reservation);
-        }
-
-        // INVOICES
-        for (int i = 0; i < 70; i++) {
-
-            Reservation reservation =
-                    reservations.get(random.nextInt(reservations.size()));
-
-            PaymentMethod paymentMethod;
-
-            if (random.nextBoolean()) {
-
-                paymentMethod = PaymentMethod.CASH;
-
-            } else {
-
-                paymentMethod = PaymentMethod.CREDIT_CARD;
-            }
-
-            Invoice invoice = new Invoice(
-                    reservation,
-                    paymentMethod
-            );
-
-            invoices.add(invoice);
-        }
-        Guest showcaseGuest = new Guest(
-                "youssef",
-                "pass123",
-                LocalDate.of(2008, 4, 24),
-                777777,
-                "Madinaty",
-                Gender.MALE
+        return checkInDate.isBefore(
+                checkOutDate
         );
-
-        guests.add(showcaseGuest);
-        for (int i = 50; i < 70; i++) {
-
-            Room room = rooms.get(i);
-
-            LocalDate checkIn =
-                    LocalDate.now().minusDays(
-                            random.nextInt(120)
-                    );
-
-            LocalDate checkOut =
-                    checkIn.plusDays(
-                            2 + random.nextInt(8)
-                    );
-
-            Reservation reservation = new Reservation(
-                    showcaseGuest,
-                    room,
-                    checkIn,
-                    checkOut
-            );
-
-            if (i % 4 == 0) {
-
-                reservation.setStatus(
-                        ReservationStatus.COMPLETED
-                );
-
-            } else if (i % 4 == 1) {
-
-                reservation.setStatus(
-                        ReservationStatus.RESERVED
-                );
-
-            } else if (i % 4 == 2) {
-
-                reservation.setStatus(
-                        ReservationStatus.PENDING
-                );
-
-            } else {
-
-                reservation.setStatus(
-                        ReservationStatus.CANCELLED
-                );
-            }
-
-            reservations.add(reservation);
-
-            Invoice invoice = new Invoice(
-                    reservation,
-                    random.nextBoolean()
-                            ? PaymentMethod.CASH
-                            : PaymentMethod.CREDIT_CARD
-            );
-
-            invoices.add(invoice);
-        }
-        Room r1 = new Room(101, single);
-        Reservation resbook = new Reservation(showcaseGuest, r1,LocalDate.now(), LocalDate.now().plusDays(14) );
-        rooms.add(r1);
-        reservations.add(resbook);
     }
 }

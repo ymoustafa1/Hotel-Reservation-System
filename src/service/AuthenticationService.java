@@ -12,7 +12,14 @@ public class AuthenticationService {
     {
         for(Guest g : HotelDatabase.guests)
         {
-            if(username.equals(g.getUsername()) &&  password.equals(g.getPassword())) {
+            if(
+                g.getUsername()
+                        .trim()
+                        .toLowerCase()
+                        .equals(
+                                username.trim().toLowerCase()
+                        )
+         &&  password.equals(g.getPassword())) {
                 return g;
             }
         }

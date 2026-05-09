@@ -45,6 +45,8 @@ abstract public class Staff
         this.workingHrs = hrs;
     }
 
+
+
     //Getters
     public String getUsername() {return username;}
 
@@ -89,5 +91,9 @@ abstract public class Staff
         }
 
         return availableRooms;
+    }
+
+    public String getWorkingHours() {
+        return String.valueOf(workingHrs);
     }
 }

@@ -7,6 +7,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import model.Gender;
 import model.Guest;
+import service.AuthenticationService;
+import util.AuthenticationException;
 import util.ErrorHandler;
 
 import java.time.LocalDate;
@@ -54,7 +56,6 @@ public class RegisterController {
                 Gender.values()
         );
 
-        // ---------------- ENTER NAVIGATION ----------------
 
         usernameField.setOnAction(e -> {
 
@@ -99,7 +100,11 @@ public class RegisterController {
 
         try {
 
-            String username = usernameField.getText().trim();
+            String username = usernameField
+                    .getText()
+                    .trim()
+                    .toLowerCase();
+            AuthenticationService.isUsernameUnique(username);
 
             String password = passwordVisible
                     ? visiblePasswordField.getText()
@@ -165,7 +170,7 @@ public class RegisterController {
             );
 
             HotelDatabase.guests.add(guest);
-
+            HotelDatabase.insertGuest(guest);
             SceneManager.switchScene("/FXML/auth.fxml");
 
         } catch (Exception e) {

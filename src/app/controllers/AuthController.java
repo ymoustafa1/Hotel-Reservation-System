@@ -58,7 +58,10 @@ public class AuthController {
         errorBox.setManaged(false);
 
         loginButton.getStyleClass().remove("danger-button");
-        String username = loginEmailField.getText();
+        String username =
+                loginEmailField.getText()
+                        .trim()
+                        .toLowerCase();
 
         String password = passwordVisible
                 ? visiblePasswordField.getText()
@@ -88,7 +91,7 @@ public class AuthController {
 
                     } else if (user instanceof Receptionist) {
 
-//            new ReceptionistDashboard().start(stage);
+                    new ReceptionistDashboard().start(stage);
 
                     } else if (user instanceof Guest) {
 

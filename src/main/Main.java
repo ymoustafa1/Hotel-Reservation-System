@@ -8,7 +8,11 @@ import java.time.*;
 
 public class Main {
     public static void main(String[] args) {
-        HotelDatabase.initializeDummyData();
+        HotelDatabase.initializeDatabase();
+
+        HotelDatabase.insertSeedData();
+
+        HotelDatabase.loadData();
         Welcome();
     }
 
@@ -563,7 +567,9 @@ public class Main {
                     if (p.isEmpty()) throw new InvalidInputException("Password cannot be empty.");
                     if (p.length() < 6) throw new InvalidInputException("Password too short. Minimum 6 characters.");
 
-                    Receptionist rec = new Receptionist(u, p);
+                    System.out.println("Enter Hours:");
+                    int h = input.nextInt();
+                    Receptionist rec = new Receptionist(u, p, h);
                     HotelDatabase.staffMembers.add(rec);
                     System.out.println("Receptionist added.");
                 }
@@ -979,7 +985,7 @@ public class Main {
 
                     Reservation res = new Reservation(g, room, start, end);
                     HotelDatabase.reservations.add(res);
-
+                    HotelDatabase.insertReservation(res);
                     while (true)
                     {
                         System.out.println("Add extra amenities? (1 = Yes, 0 = No)");

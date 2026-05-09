@@ -1,5 +1,7 @@
 package Dasboards;
 
+import app.SceneManager;
+import app.SessionManager;
 import database.HotelDatabase;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
@@ -7,272 +9,507 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import model.Guest;
 import model.Invoice;
+import util.SidebarAdmin;
 
 import java.util.ArrayList;
 
-    public class AdminInvoiceDashboard extends Application
-    {
-        private Guest guest;
-        public AdminInvoiceDashboard() {}
-        public AdminInvoiceDashboard(Guest guest) { this.guest = guest; }
-        @Override
-        public void start(Stage stage)
-        {
-            HotelDatabase.initializeDummyData();
-            if (guest == null)
-                guest = HotelDatabase.findGuest("kenzy");
-            // ===== FORCE INVOICES FOR TESTING =====
-            if (HotelDatabase.invoices.isEmpty())
-            {
-                if (!HotelDatabase.reservations.isEmpty())
-                {
-                    model.Reservation res = HotelDatabase.reservations.get(0);
-                    HotelDatabase.invoices.add(new model.Invoice(res, model.PaymentMethod.CASH));
-                    HotelDatabase.invoices.add(new model.Invoice(res, model.PaymentMethod.CREDIT_CARD));
-                    HotelDatabase.invoices.add(new model.Invoice(res, model.PaymentMethod.CASH));
+public class AdminInvoiceDashboard extends Application {
+    private TableView<Invoice> invoiceTable;
+    private TextField searchField;
+
+    private ComboBox<String> methodCombo;
+
+    private DatePicker fromDatePicker;
+
+    private DatePicker toDatePicker;
+    public AdminInvoiceDashboard() {}
+
+    @Override
+    public void start(Stage stage) {
+
+        BorderPane root = new BorderPane();
+
+        Scene scene = new Scene(root, 1400, 850);
+
+        var css = getClass().getResource("/style.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        }
+
+        root.setLeft(SidebarAdmin.createSidebar("Invoices"));
+
+        ScrollPane scroll = new ScrollPane(createMain());
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        root.setCenter(scroll);
+
+        stage.setScene(scene);
+        stage.setTitle("Invoice Dashboard");
+        stage.setMaximized(true);
+        stage.show();
+    }
+
+    private VBox createMain() {
+        VBox main = new VBox(20);
+        main.getStyleClass().add("dashboard-pane");
+        main.setPadding(new Insets(28));
+        main.getChildren().addAll(header(), stats(), filters(), table());
+        return main;
+    }
+
+    private VBox header() {
+        VBox box = new VBox(5);
+
+        Label title = new Label("Invoice Management");
+        title.getStyleClass().add("title-label");
+
+        Label sub = new Label("Create, view and manage all hotel invoices.");
+        sub.getStyleClass().add("subtitle-label");
+
+        box.getChildren().addAll(title, sub);
+        return box;
+    }
+
+    private HBox stats() {
+        HBox row = new HBox(20);
+
+        int total = HotelDatabase.invoices.size();
+        double totalAmount = 0;
+        for (Invoice inv : HotelDatabase.invoices) {
+            totalAmount += inv.getTotalAmount();
+        }
+
+        row.getChildren().addAll(
+                createStatCard("Total Invoices", String.valueOf(total)),
+                createStatCard("Paid", String.valueOf(total)),
+                createStatCard("Pending", "0"),
+                createStatCard("Total Revenue", "$" + String.format("%.2f", totalAmount))
+        );
+
+        return row;
+    }
+
+    private VBox createStatCard(String title, String value) {
+        VBox card = new VBox(10);
+        card.getStyleClass().addAll("card", "stat-card");
+        card.setPrefSize(200, 110);
+        card.setStyle("-fx-cursor: default;");
+
+        Label t = new Label(title);
+        t.getStyleClass().add("small-label");
+
+        Label v = new Label(value);
+        v.setStyle("-fx-font-size: 24; -fx-font-weight: bold;");
+
+        card.getChildren().addAll(t, v);
+        return card;
+    }
+
+    private HBox filters() {
+
+        HBox row = new HBox(15);
+
+        row.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        searchField =
+                new TextField();
+
+        searchField.setPromptText(
+                "Search invoice..."
+        );
+
+        searchField.setPrefWidth(220);
+
+        methodCombo =
+                new ComboBox<>();
+
+        methodCombo.getItems().addAll(
+                "All",
+                "CASH",
+                "CREDIT_CARD",
+                "DEBIT_CARD",
+                "ONLINE"
+        );
+
+        methodCombo.setValue("All");
+
+        fromDatePicker =
+                new DatePicker();
+
+        fromDatePicker.setPromptText(
+                "From Date"
+        );
+
+        toDatePicker =
+                new DatePicker();
+
+        toDatePicker.setPromptText(
+                "To Date"
+        );
+
+        Button clear =
+                new Button(
+                        "Clear Filters"
+                );
+
+        clear.getStyleClass()
+                .add("secondary-button");
+
+        clear.setOnAction(e -> {
+
+            searchField.clear();
+
+            methodCombo.setValue("All");
+
+            fromDatePicker.setValue(null);
+
+            toDatePicker.setValue(null);
+
+            applyFilters();
+        });
+
+        // AUTO FILTER
+
+        searchField.textProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters()
+                );
+
+        methodCombo.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters()
+                );
+
+        fromDatePicker.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters()
+                );
+
+        toDatePicker.valueProperty()
+                .addListener(
+                        (a,b,c) ->
+                                applyFilters()
+                );
+
+        row.getChildren().addAll(
+                searchField,
+                methodCombo,
+                fromDatePicker,
+                toDatePicker,
+                clear
+        );
+
+        return row;
+    }
+    private VBox table() {
+        VBox container = new VBox(10);
+        container.getStyleClass().add("card");
+        container.setStyle("-fx-cursor: default;");
+        container.setPadding(new Insets(20));
+
+        Label title = new Label("All Invoices");
+        title.getStyleClass().add("section-title");
+
+        invoiceTable =
+                new TableView<>();
+        invoiceTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        invoiceTable.setPrefHeight(500);
+        VBox.setVgrow(invoiceTable, Priority.ALWAYS);
+
+        // Invoice ID
+        TableColumn<Invoice, String> idCol = new TableColumn<>("Invoice ID");
+        idCol.setCellValueFactory(data ->
+                new SimpleStringProperty("INV-" + data.getValue().getInvoiceId())
+        );
+
+        // Guest Name
+        TableColumn<Invoice, String> guestCol = new TableColumn<>("Guest");
+        guestCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getReservation().getGuest().getUsername()
+                )
+        );
+
+        // Room
+        TableColumn<Invoice, String> roomCol = new TableColumn<>("Room");
+        roomCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getReservation().getRoom().getRoomType().getName()
+                )
+        );
+
+        // Check-in
+        TableColumn<Invoice, String> checkInCol = new TableColumn<>("Check In");
+        checkInCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getReservation().getCheckInDate().toString()
+                )
+        );
+
+        // Check-out
+        TableColumn<Invoice, String> checkOutCol = new TableColumn<>("Check Out");
+        checkOutCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        data.getValue().getReservation().getCheckOutDate().toString()
+                )
+        );
+
+        // Amount
+        TableColumn<Invoice, String> amountCol = new TableColumn<>("Amount");
+        amountCol.setCellValueFactory(data ->
+                new SimpleStringProperty(
+                        "$" + String.format("%.2f", data.getValue().getTotalAmount())
+                )
+        );
+
+        // Payment Method
+        TableColumn<Invoice, String> methodCol = new TableColumn<>("Payment");
+        methodCol.setCellValueFactory(data ->
+                new SimpleStringProperty(data.getValue().getPaymentMethod().toString())
+        );
+
+        // Status
+        TableColumn<Invoice, String> statusCol = new TableColumn<>("Status");
+        statusCol.setCellValueFactory(data ->
+                new SimpleStringProperty("Paid")
+        );
+        statusCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    Label badge = new Label(item);
+                    badge.setPadding(new Insets(3, 10, 3, 10));
+                    badge.setStyle(
+                            "-fx-background-color: #DCFCE7;" +
+                                    "-fx-text-fill: #166534;" +
+                                    "-fx-background-radius: 99;" +
+                                    "-fx-font-size: 11;" +
+                                    "-fx-font-weight: bold;"
+                    );
+                    setGraphic(badge);
                 }
             }
-            BorderPane root = new BorderPane();
-            Scene scene = new Scene(root, 1200, 700);
+        });
 
-            // CSS
-            var css = getClass().getResource("/style.css");
-            if (css != null)
-                scene.getStylesheets().add(css.toExternalForm());
-            root.setLeft(createSidebar());
-            root.setCenter(createMain());
-            stage.setScene(scene);
-            stage.setTitle("Invoice Dashboard");
-            stage.setMaximized(true);
-            stage.show();
-        }
-
-        // ================= SAFE ICON =================
-        private ImageView icon(String path, int size)
-        {
-            try {
-                var stream = getClass().getResourceAsStream(path);
-                if (stream == null) return new ImageView();
-                ImageView img = new ImageView(new Image(stream));
-                img.setFitWidth(size);
-                img.setFitHeight(size);
-                return img;
-            } catch (Exception e) {
-                return new ImageView();
+        // Action
+        TableColumn<Invoice, String> actionCol = new TableColumn<>("Action");
+        actionCol.setCellFactory(col -> new TableCell<>() {
+            private final Button viewBtn = new Button("View");
+            {
+                viewBtn.getStyleClass().add("button");
+                viewBtn.setOnAction(e -> {
+                    Invoice inv = getTableView().getItems().get(getIndex());
+                    showInvoiceDetail(inv);
+                });
             }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setGraphic(empty ? null : viewBtn);
+            }
+        });
+
+        invoiceTable.getColumns().addAll(
+                idCol, guestCol, roomCol, checkInCol, checkOutCol,
+                amountCol, methodCol, statusCol, actionCol
+        );
+
+        applyFilters();
+
+        container.getChildren().addAll(title, invoiceTable);
+        return container;
+    }
+    private void applyFilters() {
+
+        if (invoiceTable == null) {
+
+            return;
         }
 
-        // ================= SIDEBAR =================
-        private VBox createSidebar()
-        {
-            VBox sidebar = new VBox();
-            sidebar.getStyleClass().add("sidebar");
-            sidebar.setSpacing(15);
-            sidebar.setPadding(new Insets(20));
-            sidebar.setStyle("-fx-background-color: #0F172A;");
-            sidebar.getChildren().addAll(sidebarItem("Invoice Management", "/invoice.png"), sidebarItem("Payment & Checkout", "/wallet.png"), sidebarItem("Receptionist Panel", "/user.png"));
-            Region spacer = new Region();
-            VBox.setVgrow(spacer, Priority.ALWAYS);
-            sidebar.getChildren().add(spacer);
-            sidebar.getChildren().add(sidebarItem("Logout", "/exit.png"));
-            return sidebar;
-        }
+        invoiceTable.getItems().clear();
 
-        private HBox sidebarItem(String text, String iconPath)
-        {
-            HBox box = new HBox(10);
-            box.setAlignment(Pos.CENTER_LEFT);
-            box.getStyleClass().add("sidebar-button");
-            Label label = new Label(text);
-            label.setStyle("-fx-text-fill: white;");
-            box.getChildren().addAll(icon(iconPath, 18), label);
-            return box;
-        }
+        String search =
 
-        // ================= MAIN =================
-        private VBox createMain()
-        {
-            VBox main = new VBox(20);
-            main.getStyleClass().add("dashboard-pane");
-            main.setPadding(new Insets(25));
-            main.getChildren().addAll(header(), stats(), filters(), table());
-            return main;
-        }
+                searchField.getText()
+                        .toLowerCase()
+                        .trim();
 
-        // ================= HEADER =================
-        private VBox header()
-        {
-            VBox box = new VBox(5);
-            Label title = new Label("Invoice Management");
-            title.getStyleClass().add("title-label");
-            Label sub = new Label("Create, view and manage all hotel invoices.");
-            sub.getStyleClass().add("subtitle-label");
-            box.getChildren().addAll(title, sub);
-            return box;
-        }
+        String payment =
 
-        // ================= STATS =================
-        private HBox stats()
-        {
-            HBox row = new HBox(20);
-            int total = HotelDatabase.invoices.size();
-            row.getChildren().addAll(stat("Total Invoices", total), stat("Paid", total), stat("Pending", 0), stat("Cancelled", 0));
-            return row;
-        }
+                methodCombo.getValue();
 
-        private VBox stat(String title, int value)
-        {
-            VBox card = new VBox(10);
-            card.getStyleClass().addAll("card", "stat-card");
-            card.setPrefSize(200, 110);
-            Label t = new Label(title);
-            t.getStyleClass().add("small-label");
-            Label v = new Label(String.valueOf(value));
-            v.setStyle("-fx-font-size: 24; -fx-font-weight: bold;");
-            card.getChildren().addAll(t, v);
-            return card;
-        }
+        for (Invoice inv : HotelDatabase.invoices) {
 
-        // ================= FILTERS =================
-        private HBox filters()
-        {
-            HBox filters = new HBox(15);
-            filters.setAlignment(Pos.CENTER_LEFT);
-            TextField search = new TextField();
-            search.setPromptText("Search invoice...");
-            search.setPrefWidth(200);
-            ComboBox<String> status = new ComboBox<>();
-            status.getItems().addAll("All", "Paid", "Pending");
-            status.setValue("All");
-            DatePicker from = new DatePicker();
-            DatePicker to = new DatePicker();
-            Button clear = new Button("Clear");
-            clear.getStyleClass().add("button");
-            clear.setOnAction(e ->
-            {
-                search.clear();
-                status.setValue("All");
-                from.setValue(null);
-                to.setValue(null);
-            });
-            filters.getChildren().addAll(search, status, from, to, clear);
-            return filters;
-        }
+            boolean matches = true;
 
-        // ================= TABLE =================
-        private VBox table()
-        {
-            VBox container = new VBox(10);
-            container.getStyleClass().add("card");
-            Label title = new Label("Invoices");
-            title.getStyleClass().add("section-title");
-            TableView<Invoice> table = new TableView<>();
-            container.setFillWidth(true);
-            VBox.setVgrow(table, Priority.ALWAYS);
-            // ID
-            TableColumn<Invoice, String> idCol = new TableColumn<>("Invoice ID");
-            idCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>() {
-                @Override
-                public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
-                {return new SimpleStringProperty("INV-" + data.getValue().getInvoiceId());}
-            });
+            // SEARCH
 
-            // ROOM
-            TableColumn<Invoice, String> roomCol = new TableColumn<>("Room");
-            roomCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>()
-            {
-                @Override
-                public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
-                {return new SimpleStringProperty(data.getValue().getReservation().getRoom().getRoomType().getName());}
-            });
+            String invoiceId =
+                    "inv-" + inv.getInvoiceId();
 
-            // CHECK IN
-            TableColumn<Invoice, String> checkInCol = new TableColumn<>("Check In");
-            checkInCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getReservation().getCheckInDate().toString()));
+            String guest =
+                    inv.getReservation()
+                            .getGuest()
+                            .getUsername()
+                            .toLowerCase();
 
-            // CHECK OUT
-            TableColumn<Invoice, String> checkOutCol = new TableColumn<>("Check Out");
-            checkOutCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getReservation().getCheckOutDate().toString()));
+            String room =
+                    inv.getReservation()
+                            .getRoom()
+                            .getRoomType()
+                            .getName()
+                            .toLowerCase();
 
-            // AMOUNT
-            TableColumn<Invoice, String> amountCol = new TableColumn<>("Amount");
-            amountCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>()
-            {
-                @Override
-                public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
-                {return new SimpleStringProperty("$" + data.getValue().getTotalAmount());}
-            });
+            if (
+                    !search.isBlank()
 
-            // PAYMENT
-            TableColumn<Invoice, String> methodCol = new TableColumn<>("Payment");
-            methodCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>()
-            {
-                @Override
-                public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
-                {return new SimpleStringProperty(data.getValue().getPaymentMethod().toString());}
-            });
+                            &&
 
-            // STATUS
-            TableColumn<Invoice, String> statusCol = new TableColumn<>("Status");
-            statusCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Invoice, String>, javafx.beans.value.ObservableValue<String>>()
-            {
-                @Override
-                public javafx.beans.value.ObservableValue<String> call(TableColumn.CellDataFeatures<Invoice, String> data)
-                {return new SimpleStringProperty("Paid");}
-            });
+                            !invoiceId.contains(search)
 
-            // ACTION
-            TableColumn<Invoice, String> actionCol = new TableColumn<>("Action");
-            actionCol.setCellFactory(new Callback<TableColumn<Invoice, String>, TableCell<Invoice, String>>()
-            {
-                @Override
-                public TableCell<Invoice, String> call(TableColumn<Invoice, String> param)
-                {
-                    return new TableCell<>()
-                    {
-                        private final Button viewBtn = new Button("View");
-                        {
-                            viewBtn.getStyleClass().add("button");
-                            viewBtn.setOnAction(e -> {
-                                Invoice inv = getTableView().getItems().get(getIndex());
-                                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                                alert.setHeaderText("Invoice Details");
-                                alert.setContentText("Invoice ID: " + inv.getInvoiceId() + "\nAmount: $" + inv.getTotalAmount() + "\nPayment: " + inv.getPaymentMethod());
-                                alert.show();
-                            });
-                        }
+                            &&
 
-                        @Override
-                        protected void updateItem(String item, boolean empty)
-                        {
-                            if (empty)
-                                setGraphic(null);
-                            else
-                                setGraphic(viewBtn);
-                        }
-                    };
+                            !guest.contains(search)
+
+                            &&
+
+                            !room.contains(search)
+            ) {
+
+                matches = false;
+            }
+
+            // PAYMENT METHOD
+
+            if (
+                    payment != null
+
+                            &&
+
+                            !payment.equals("All")
+            ) {
+
+                if (
+                        !inv.getPaymentMethod()
+                                .toString()
+                                .equals(payment)
+                ) {
+
+                    matches = false;
                 }
-            });
-            table.getColumns().addAll(idCol, roomCol, checkInCol, checkOutCol, amountCol, methodCol, statusCol, actionCol);
-
-            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-            table.setPrefWidth(Double.MAX_VALUE);
-
-            // DATA
-            ArrayList<Invoice> list = new ArrayList<>();
-            for (Invoice inv : HotelDatabase.invoices)
-            {
-                list.add(inv);
             }
-            table.getItems().addAll(list);
-            container.getChildren().addAll(title, table);
-            return container;
+
+            // FROM DATE
+
+            if (
+                    fromDatePicker.getValue()
+                            != null
+            ) {
+
+                if (
+                        inv.getReservation()
+                                .getCheckInDate()
+                                .isBefore(
+                                        fromDatePicker.getValue()
+                                )
+                ) {
+
+                    matches = false;
+                }
+            }
+
+            // TO DATE
+
+            if (
+                    toDatePicker.getValue()
+                            != null
+            ) {
+
+                if (
+                        inv.getReservation()
+                                .getCheckOutDate()
+                                .isAfter(
+                                        toDatePicker.getValue()
+                                )
+                ) {
+
+                    matches = false;
+                }
+            }
+
+            if (matches) {
+
+                invoiceTable.getItems()
+                        .add(inv);
+            }
         }
     }
+
+    private void showInvoiceDetail(Invoice inv) {
+        Stage popup = new Stage();
+
+        VBox root = new VBox(18);
+        root.setPadding(new Insets(25));
+        root.getStyleClass().add("card");
+
+        Label title = new Label("Invoice Details");
+        title.setStyle("-fx-font-size: 22; -fx-font-weight: bold;");
+
+        GridPane details = new GridPane();
+        details.setHgap(30);
+        details.setVgap(14);
+
+        addDetailRow(details, "Invoice ID",     "INV-" + inv.getInvoiceId(), 0);
+        addDetailRow(details, "Guest",          inv.getReservation().getGuest().getUsername(), 1);
+        addDetailRow(details, "Room Type",      inv.getReservation().getRoom().getRoomType().getName(), 2);
+        addDetailRow(details, "Check In",       inv.getReservation().getCheckInDate().toString(), 3);
+        addDetailRow(details, "Check Out",      inv.getReservation().getCheckOutDate().toString(), 4);
+        addDetailRow(details, "Payment Method", inv.getPaymentMethod().toString(), 5);
+        addDetailRow(details, "Total Amount",   "$" + String.format("%.2f", inv.getTotalAmount()), 6);
+        addDetailRow(details, "Status",         "Paid", 7);
+
+        Button closeBtn = new Button("Close");
+        closeBtn.getStyleClass().add("button");
+        closeBtn.setOnAction(e -> popup.close());
+
+        root.getChildren().addAll(title, details, closeBtn);
+
+        Scene scene = new Scene(root, 440, 430);
+        var css = getClass().getResource("/style.css");
+        if (css != null) scene.getStylesheets().add(css.toExternalForm());
+
+        popup.setScene(scene);
+        popup.setTitle("Invoice #" + inv.getInvoiceId());
+        popup.setResizable(false);
+        popup.show();
+    }
+
+    private void addDetailRow(GridPane grid, String label, String value, int row) {
+        Label l = new Label(label);
+        l.getStyleClass().add("section-title");
+
+        Label v = new Label(value);
+        v.setStyle("-fx-font-size: 14; -fx-text-fill: #374151;");
+
+        grid.add(l, 0, row);
+        grid.add(v, 1, row);
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
