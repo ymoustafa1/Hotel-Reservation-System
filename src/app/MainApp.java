@@ -22,11 +22,10 @@ public class MainApp extends Application {
 
 
     private void initializeApp(Stage stage) {
-        HotelDatabase.initializeDatabase();
 
-        HotelDatabase.insertSeedData();
+        HotelDatabase.initializeDummyData();
 
-        HotelDatabase.loadData();
+
         SceneManager.setStage(stage);
         stage.setTitle("Hotel Reservation System");
         stage.setMaximized(true);

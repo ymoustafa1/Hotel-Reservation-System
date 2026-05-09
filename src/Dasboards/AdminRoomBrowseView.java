@@ -532,7 +532,6 @@ public class AdminRoomBrowseView extends Application {
             }
 
             HotelDatabase.rooms.add(newRoom);
-            HotelDatabase.insertRoom(newRoom);
             dialog.close();
             applyFilters.run();
         });

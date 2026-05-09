@@ -95,6 +95,15 @@ public class ChatClient {
         if (line.startsWith("ERR:")) {
             System.err.println("[ChatClient:" + username + "] Server error: " + line);
         }
+        if (line.startsWith("HISTORY:")) {
+            String[] parts = line.split(":", 4);
+            if (parts.length == 4) {
+                String displayText = "[" + parts[2] + "] " + parts[3];
+                boolean isSelf = parts[1].equals(username);
+                messageListener.accept(new ChatMessage(parts[1], displayText, isSelf));
+            }
+            return;
+        }
     }
 
 

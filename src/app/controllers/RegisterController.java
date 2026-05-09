@@ -170,7 +170,6 @@ public class RegisterController {
             );
 
             HotelDatabase.guests.add(guest);
-            HotelDatabase.insertGuest(guest);
             SceneManager.switchScene("/FXML/auth.fxml");
 
         } catch (Exception e) {

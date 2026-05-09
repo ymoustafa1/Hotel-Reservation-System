@@ -42,7 +42,9 @@ public class Guest  {
         this.address=address;
         this.gender=gender;
     }
-//data methods getters
+
+
+    //data methods getters
     public double getBalance() {
         return balance;
     }
@@ -104,7 +106,6 @@ public class Guest  {
             }
 
         HotelDatabase.guests.add(this);
-        HotelDatabase.insertGuest(this);
 
     }
     //uses authentication service  class login method to login
@@ -136,7 +137,6 @@ public class Guest  {
         }
         Reservation reservation = new Reservation(this ,room, start , end);
         HotelDatabase.reservations.add(reservation);
-        HotelDatabase.insertReservation(reservation);
         return reservation;
     }
 
