@@ -4,6 +4,7 @@ import Dasboards.GuestChatDashboard;
 import Dasboards.ReceptionistChatDashboard;
 import app.SceneManager;
 import app.SessionManager;
+import app.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -87,6 +88,14 @@ public class SidebarGuest {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
+        Button themeBtn = new Button(ThemeManager.getInstance().getToggleLabel());
+        themeBtn.getStyleClass().add("theme-toggle-button");
+        themeBtn.setPrefWidth(190);
+        themeBtn.setOnAction(e -> {
+            ThemeManager.getInstance().toggleTheme();
+            themeBtn.setText(ThemeManager.getInstance().getToggleLabel());
+        });
+
         Button logoutBtn = createButton("Logout", "/exit.png");
         logoutBtn.setOnAction(e -> {
             SessionManager.logout();
@@ -95,7 +104,7 @@ public class SidebarGuest {
             SceneManager.switchScene("/FXML/auth.fxml");
         });
 
-        sidebar.getChildren().addAll(spacer, logoutBtn);
+        sidebar.getChildren().addAll(spacer, themeBtn, logoutBtn);
 
         return sidebar;
     }

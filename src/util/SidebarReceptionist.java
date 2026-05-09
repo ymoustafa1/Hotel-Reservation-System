@@ -3,6 +3,7 @@ package util;
 import Dasboards.*;
 import app.SceneManager;
 import app.SessionManager;
+import app.ThemeManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -73,6 +74,15 @@ public class SidebarReceptionist {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
+        Button themeBtn = new Button(ThemeManager.getInstance().getToggleLabel());
+        themeBtn.getStyleClass().add("theme-toggle-button");
+        themeBtn.setPrefWidth(190);
+        themeBtn.setOnAction(e -> {
+            ThemeManager.getInstance().toggleTheme();
+            themeBtn.setText(ThemeManager.getInstance().getToggleLabel());
+        });
+
+
         Button logoutBtn = createButton("Logout", "\uD83D\uDEAA");
         logoutBtn.setOnAction(e -> {
             SessionManager.logout();
@@ -81,7 +91,7 @@ public class SidebarReceptionist {
             SceneManager.switchScene("/FXML/auth.fxml");
         });
 
-        sidebar.getChildren().addAll(spacer, logoutBtn);
+        sidebar.getChildren().addAll(spacer, themeBtn, logoutBtn);
 
         return sidebar;
     }

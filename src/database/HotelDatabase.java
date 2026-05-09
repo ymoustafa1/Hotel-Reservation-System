@@ -410,7 +410,7 @@ public static void initializeDummyData() {
         String name =
                 names[random.nextInt(
                         names.length
-                )] + i;
+                )];
 
         String password =
                 "pass123";
