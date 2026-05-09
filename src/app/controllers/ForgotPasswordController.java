@@ -45,9 +45,7 @@ public class ForgotPasswordController {
         try {
 
             String username =
-                    usernameField.getText()
-                            .trim()
-                            .toLowerCase();
+                    usernameField.getText().trim();
 
             if (username.isBlank()) {
 
@@ -56,19 +54,8 @@ public class ForgotPasswordController {
                 );
             }
 
-            foundGuest = null;
-
-            for (Guest guest : HotelDatabase.guests) {
-
-                if (guest.getUsername()
-                        .trim()
-                        .toLowerCase()
-                        .equals(username)) {
-
-                    foundGuest = guest;
-                    break;
-                }
-            }
+            foundGuest =
+                    HotelDatabase.findGuest(username);
 
             if (foundGuest == null) {
 
@@ -79,6 +66,7 @@ public class ForgotPasswordController {
 
             passwordSection.setVisible(true);
             passwordSection.setManaged(true);
+
             findAccountButton.setVisible(false);
             findAccountButton.setManaged(false);
 
@@ -91,7 +79,6 @@ public class ForgotPasswordController {
             );
         }
     }
-
     @FXML
     private void handleSetPassword() {
 

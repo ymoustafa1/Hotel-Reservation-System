@@ -144,6 +144,12 @@ public class RegisterController {
                         "Date of birth must be before today."
                 );
             }
+            if (dateOfBirth.isAfter(LocalDate.now().minusYears(18))) {
+
+                throw new IllegalArgumentException(
+                        "Guest must be at least 18 years old."
+                );
+            }
 
             double balance;
 

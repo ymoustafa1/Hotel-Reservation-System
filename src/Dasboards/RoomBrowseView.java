@@ -1,8 +1,11 @@
 package Dasboards;
 
 import app.SceneManager;
+import app.ThemeManager;
 import database.HotelDatabase;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -19,6 +22,10 @@ import util.SidebarGuest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RoomBrowseView extends Application {
 
@@ -26,6 +33,16 @@ public class RoomBrowseView extends Application {
     private FlowPane roomContainer;
     private LocalDate selectedStart;
     private LocalDate selectedEnd;
+
+    private final AtomicBoolean filterRunning = new AtomicBoolean(false);
+
+    private ScheduledExecutorService autoRefreshScheduler;
+
+    private Label statusLabel;
+    private ProgressIndicator loadingSpinner;
+    private ComboBox<String> typeCombo;
+    private ComboBox<String> amenityCombo;
+    private TextField priceField;
 
     public RoomBrowseView() {}
 
@@ -42,10 +59,7 @@ public class RoomBrowseView extends Application {
 
         BorderPane root = new BorderPane();
 
-        Scene scene = new Scene(root, 1400, 850);
-        scene.getStylesheets().add(
-                getClass().getResource("/style.css").toExternalForm()
-        );
+        Scene scene = SceneManager.buildScene(root, 1400, 850);
 
         root.setLeft(SidebarGuest.createSidebar("View Rooms"));
 
@@ -66,6 +80,18 @@ public class RoomBrowseView extends Application {
         Label subtitle = new Label("Select your dates to see available rooms.");
         subtitle.getStyleClass().add("subtitle-label");
 
+        loadingSpinner = new ProgressIndicator();
+        loadingSpinner.setPrefSize(22, 22);
+        loadingSpinner.setVisible(false);
+        loadingSpinner.setManaged(false);
+
+        statusLabel = new Label();
+        statusLabel.getStyleClass().add("small-label");
+        statusLabel.setVisible(false);
+        statusLabel.setManaged(false);
+
+        HBox statusRow = new HBox(8, loadingSpinner, statusLabel);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox dateRow = new HBox(15);
         dateRow.setAlignment(Pos.CENTER_LEFT);
@@ -93,53 +119,49 @@ public class RoomBrowseView extends Application {
             }
         });
 
-
-
         Label dateError = new Label();
         dateError.setStyle("-fx-text-fill: #991B1B; -fx-font-size: 13;");
         dateError.setVisible(false);
         dateError.setManaged(false);
 
+        Button refreshBtn = new Button("↻  Refresh");
+        refreshBtn.getStyleClass().add("button");
+        refreshBtn.setOnAction(e -> {
+            if (selectedStart != null && selectedEnd != null) {
+                loadRoomsAsync();
+            }
+        });
+
         dateRow.getChildren().addAll(
                 new Label("Check In:"), checkInPicker,
-                new Label("Check Out:"), checkOutPicker
-
+                new Label("Check Out:"), checkOutPicker,
+                refreshBtn
         );
-
 
         HBox filters = new HBox(15);
         filters.setAlignment(Pos.CENTER_LEFT);
         filters.setVisible(false);
         filters.setManaged(false);
 
-        ComboBox<String> typeCombo = new ComboBox<>();
+        typeCombo = new ComboBox<>();
         typeCombo.getItems().add("All");
-
         for (RoomType rt : HotelDatabase.roomTypes) {
-
-            typeCombo.getItems().add(
-                    rt.getName()
-            );
+            typeCombo.getItems().add(rt.getName());
         }
         typeCombo.setValue("All");
         typeCombo.setPrefWidth(160);
 
-        ComboBox<String> amenityCombo = new ComboBox<>();
+        amenityCombo = new ComboBox<>();
         amenityCombo.getItems().add("All");
-
         for (Amenity amenity : HotelDatabase.amenities) {
-
-            amenityCombo.getItems().add(
-                    amenity.getName()
-            );
+            amenityCombo.getItems().add(amenity.getName());
         }
         amenityCombo.setValue("All");
         amenityCombo.setPrefWidth(160);
 
-        TextField priceField = new TextField();
+        priceField = new TextField();
         priceField.setPromptText("Max Price");
         priceField.setPrefWidth(160);
-
 
         Button clearFilterBtn = new Button("Clear");
         clearFilterBtn.getStyleClass().add("secondary-button");
@@ -148,9 +170,8 @@ public class RoomBrowseView extends Application {
                 new Label("Type:"), typeCombo,
                 new Label("Amenity:"), amenityCombo,
                 new Label("Max Price:"), priceField,
-                 clearFilterBtn
+                clearFilterBtn
         );
-
 
         roomContainer = new FlowPane();
         roomContainer.setAlignment(Pos.TOP_LEFT);
@@ -163,156 +184,69 @@ public class RoomBrowseView extends Application {
         placeholderLabel.getStyleClass().add("subtitle-label");
         roomContainer.getChildren().add(placeholderLabel);
 
-
-        Runnable applyFilters = () -> {
-            if (selectedStart == null || selectedEnd == null) return;
-
-            roomContainer.getChildren().clear();
-
-            String selType = typeCombo.getValue();
-            String selAmenity = amenityCombo.getValue();
-            String priceText = priceField.getText().trim();
-
-            List<Room> available = new ArrayList<>();
-            for (Room r : HotelDatabase.rooms) {
-                if (!r.isAvailable(selectedStart, selectedEnd)) continue;
-
-                if (!selType.equals("All") && !r.getRoomType().getName().equalsIgnoreCase(selType))
-                    continue;
-
-                if (!selAmenity.equals("All")) {
-                    boolean hasAmenity = false;
-                    for (Amenity a : r.getAmenities()) {
-                        if (a.getName().equalsIgnoreCase(selAmenity)) { hasAmenity = true; break; }
-                    }
-                    if (!hasAmenity) continue;
-                }
-
-                if (!priceText.isEmpty()) {
-                    try {
-                        double maxPrice = Double.parseDouble(priceText);
-                        if (r.getPrice() > maxPrice) continue;
-                    } catch (NumberFormatException ignored) {}
-                }
-
-                available.add(r);
-            }
-
-            if (available.isEmpty()) {
-                Label noRooms = new Label("No available rooms match your criteria.");
-                noRooms.getStyleClass().add("subtitle-label");
-                roomContainer.getChildren().add(noRooms);
-            } else {
-                for (Room r : available) {
-                    roomContainer.getChildren().add(createRoomCard(r, stage));
-                }
-            }
-        };
         Runnable validateAndRefresh = () -> {
-
             dateError.setVisible(false);
             dateError.setManaged(false);
 
-            LocalDate start =
-                    checkInPicker.getValue();
-
-            LocalDate end =
-                    checkOutPicker.getValue();
+            LocalDate start = checkInPicker.getValue();
+            LocalDate end = checkOutPicker.getValue();
 
             if (start == null || end == null) {
-
                 roomContainer.getChildren().clear();
-
-                Label placeholder =
-                        new Label(
-                                "Choose your check-in and check-out dates to see available rooms."
-                        );
-
-                placeholder.getStyleClass()
-                        .add("subtitle-label");
-
-                roomContainer.getChildren()
-                        .add(placeholder);
-
+                Label ph = new Label("Choose your check-in and check-out dates to see available rooms.");
+                ph.getStyleClass().add("subtitle-label");
+                roomContainer.getChildren().add(ph);
                 filters.setVisible(false);
                 filters.setManaged(false);
-
+                stopAutoRefresh();
                 return;
             }
 
             if (!start.isBefore(end)) {
-
-                dateError.setText(
-                        "Check-out must be after check-in."
-                );
-
+                dateError.setText("Check-out must be after check-in.");
                 dateError.setVisible(true);
                 dateError.setManaged(true);
-
                 return;
             }
 
             if (start.isBefore(LocalDate.now())) {
-
-                dateError.setText(
-                        "Check-in cannot be in the past."
-                );
-
+                dateError.setText("Check-in cannot be in the past.");
                 dateError.setVisible(true);
                 dateError.setManaged(true);
-
                 return;
             }
 
             selectedStart = start;
             selectedEnd = end;
-
             filters.setVisible(true);
             filters.setManaged(true);
 
-            applyFilters.run();
+            loadRoomsAsync();
+
+            startAutoRefresh();
         };
-        checkInPicker.valueProperty()
-                .addListener(
-                        (a,b,c) ->
-                                validateAndRefresh.run()
-                );
 
-        checkOutPicker.valueProperty()
-                .addListener(
-                        (a,b,c) ->
-                                validateAndRefresh.run()
-                );
-
-        typeCombo.valueProperty()
-                .addListener(
-                        (a,b,c) ->
-                                applyFilters.run()
-                );
-
-        amenityCombo.valueProperty()
-                .addListener(
-                        (a,b,c) ->
-                                applyFilters.run()
-                );
-
-        priceField.textProperty()
-                .addListener(
-                        (a,b,c) ->
-                                applyFilters.run()
-                );
-
-
+        checkInPicker.valueProperty().addListener((a, b, c) -> validateAndRefresh.run());
+        checkOutPicker.valueProperty().addListener((a, b, c) -> validateAndRefresh.run());
+        typeCombo.valueProperty().addListener((a, b, c) -> { if (selectedStart != null) loadRoomsAsync(); });
+        amenityCombo.valueProperty().addListener((a, b, c) -> { if (selectedStart != null) loadRoomsAsync(); });
+        priceField.textProperty().addListener((a, b, c) -> { if (selectedStart != null) loadRoomsAsync(); });
 
         clearFilterBtn.setOnAction(e -> {
             typeCombo.setValue("All");
             amenityCombo.setValue("All");
             priceField.clear();
-            applyFilters.run();
+            if (selectedStart != null) loadRoomsAsync();
+        });
+
+        stage.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != scene) {
+                stopAutoRefresh();
+            }
         });
 
         centerArea.getChildren().addAll(
-                title, subtitle, dateRow, dateError, filters, roomContainer
+                title, subtitle, dateRow, dateError, statusRow, filters, roomContainer
         );
 
         stage.setScene(scene);
@@ -322,53 +256,134 @@ public class RoomBrowseView extends Application {
     }
 
 
-    private VBox createRoomCard(Room room, Stage stage) {
+    private void loadRoomsAsync() {
+        if (selectedStart == null || selectedEnd == null) return;
+
+        final String selType    = typeCombo    != null ? typeCombo.getValue()       : "All";
+        final String selAmenity = amenityCombo != null ? amenityCombo.getValue()    : "All";
+        final String priceText  = priceField   != null ? priceField.getText().trim(): "";
+        final LocalDate start   = selectedStart;
+        final LocalDate end     = selectedEnd;
+
+        setLoadingState(true, "Loading available rooms…");
+
+        Task<List<Room>> task = new Task<>() {
+            @Override
+            protected List<Room> call() {
+                List<Room> available = new ArrayList<>();
+
+                for (Room r : HotelDatabase.rooms) {
+                    if (!r.isAvailable(start, end)) continue;
+
+                    if (!selType.equals("All") &&
+                            !r.getRoomType().getName().equalsIgnoreCase(selType)) continue;
+
+                    if (!selAmenity.equals("All")) {
+                        boolean hasAmenity = false;
+                        for (Amenity a : r.getAmenities()) {
+                            if (a.getName().equalsIgnoreCase(selAmenity)) {
+                                hasAmenity = true;
+                                break;
+                            }
+                        }
+                        if (!hasAmenity) continue;
+                    }
+
+                    if (!priceText.isEmpty()) {
+                        try {
+                            double maxPrice = Double.parseDouble(priceText);
+                            if (r.getPrice() > maxPrice) continue;
+                        } catch (NumberFormatException ignored) {}
+                    }
+
+                    available.add(r);
+                }
+
+                return available;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            List<Room> result = task.getValue();
+            renderRooms(result);
+            setLoadingState(false,
+                    result.isEmpty()
+                            ? "No rooms match your filters."
+                            : result.size() + " room(s) available · last updated just now");
+        });
+
+        task.setOnFailed(e -> {
+            setLoadingState(false, "Failed to load rooms. Please try again.");
+            task.getException().printStackTrace();
+        });
+
+        Thread t = new Thread(task, "room-loader");
+        t.setDaemon(true);
+        t.start();
+    }
+
+
+    private void startAutoRefresh() {
+        stopAutoRefresh();
+        autoRefreshScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "room-auto-refresh");
+            t.setDaemon(true);
+            return t;
+        });
+        autoRefreshScheduler.scheduleAtFixedRate(
+                () -> Platform.runLater(this::loadRoomsAsync),
+                30, 30, TimeUnit.SECONDS
+        );
+    }
+
+    private void stopAutoRefresh() {
+        if (autoRefreshScheduler != null && !autoRefreshScheduler.isShutdown()) {
+            autoRefreshScheduler.shutdownNow();
+        }
+    }
+
+    private void setLoadingState(boolean loading, String message) {
+        loadingSpinner.setVisible(loading);
+        loadingSpinner.setManaged(loading);
+        statusLabel.setText(message);
+        statusLabel.setVisible(true);
+        statusLabel.setManaged(true);
+    }
+
+    /** Populate roomContainer with cards. Must be on FX thread. */
+    private void renderRooms(List<Room> rooms) {
+        roomContainer.getChildren().clear();
+        if (rooms.isEmpty()) {
+            Label noRooms = new Label("No available rooms match your criteria.");
+            noRooms.getStyleClass().add("subtitle-label");
+            roomContainer.getChildren().add(noRooms);
+        } else {
+            for (Room r : rooms) {
+                roomContainer.getChildren().add(createRoomCard(r));
+            }
+        }
+    }
+
+
+
+    private VBox createRoomCard(Room room) {
 
         VBox card = new VBox(10);
         card.setPrefWidth(320);
         card.getStyleClass().add("card");
 
-        String typeName = room.getRoomType().getName().toLowerCase();
-        String roomTypeName =
-                room.getRoomType()
-                        .getName();
+        String roomTypeName = room.getRoomType().getName();
+        String imagePath = "/" + roomTypeName.replaceAll("\\s+", "").toLowerCase() + ".jpg";
 
-        String imagePath =
-                "/" +
-                        roomTypeName
-                                .replaceAll("\\s+", "")
-                                .toLowerCase()
-                        +
-                        ".jpg";
         Image image;
-
         try {
-
-            image = new Image(
-                    getClass()
-                            .getResourceAsStream(
-                                    imagePath
-                            )
-            );
-
-            if (image.isError()) {
-
-                throw new Exception();
-            }
-
+            image = new Image(getClass().getResourceAsStream(imagePath));
+            if (image.isError()) throw new Exception();
         } catch (Exception e) {
-
-            image = new Image(
-                    getClass()
-                            .getResourceAsStream(
-                                    "/placeholder.jpg"
-                            )
-            );
+            image = new Image(getClass().getResourceAsStream("/placeholder.jpg"));
         }
 
-        ImageView roomImage =
-                new ImageView(image);
-
+        ImageView roomImage = new ImageView(image);
         roomImage.setFitWidth(290);
         roomImage.setFitHeight(170);
         roomImage.setPreserveRatio(false);
@@ -382,7 +397,7 @@ public class RoomBrowseView extends Application {
         HBox nameBadgeRow = new HBox(8);
         nameBadgeRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label roomName = new Label(room.getRoomType().getName() + " Room");
+        Label roomName = new Label(roomTypeName + " Room");
         roomName.getStyleClass().add("section-title");
 
         Label roomNumBadge = new Label("# " + room.getRoomId());
@@ -408,8 +423,7 @@ public class RoomBrowseView extends Application {
 
         Button reserveBtn = new Button("Reserve");
         reserveBtn.getStyleClass().add("button");
-
-        reserveBtn.setOnAction(e -> openReservationFlow(room, stage));
+        reserveBtn.setOnAction(e -> openReservationFlow(room));
 
         HBox bottomSection = new HBox();
         bottomSection.setAlignment(Pos.CENTER_LEFT);
@@ -424,10 +438,7 @@ public class RoomBrowseView extends Application {
         return card;
     }
 
-
-    private void openReservationFlow(Room room, Stage stage) {
-
-        Reservation[] resHolder = {null};
+    private void openReservationFlow(Room room) {
 
         Stage popup = new Stage();
         popup.setTitle("Reserve - " + room.getRoomType().getName() + " Room");
@@ -441,14 +452,10 @@ public class RoomBrowseView extends Application {
         Label popupTitle = new Label("Reserve " + room.getRoomType().getName() + " Room");
         popupTitle.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 
-        Label datesLabel = new Label(
-                "📅 " + selectedStart + "  →  " + selectedEnd
-        );
+        Label datesLabel = new Label("📅 " + selectedStart + "  →  " + selectedEnd);
         datesLabel.getStyleClass().add("subtitle-label");
 
-        Label priceLabel = new Label(
-                "Price: $" + room.getPrice() + " / night"
-        );
+        Label priceLabel = new Label("Price: $" + room.getPrice() + " / night");
         priceLabel.setStyle("-fx-font-size: 14; -fx-text-fill: #166534; -fx-font-weight: bold;");
 
         Label errorLabel = new Label();
@@ -456,23 +463,17 @@ public class RoomBrowseView extends Application {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 
-
         Label amenityTitle = new Label("Extra Amenities");
         amenityTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
 
         VBox amenityList = new VBox(8);
-
         List<Amenity> extraAmenities = new ArrayList<>();
 
-        List<Amenity> allAmenities = HotelDatabase.amenities;
-
-        for (Amenity amenity : allAmenities) {
+        for (Amenity amenity : HotelDatabase.amenities) {
             boolean alreadyOnRoom = room.getAmenities().stream()
                     .anyMatch(a -> a.getName().equalsIgnoreCase(amenity.getName()));
 
-            CheckBox cb = new CheckBox(
-                    amenity.getName() + "  (+$" + amenity.getPrice() + ")"
-            );
+            CheckBox cb = new CheckBox(amenity.getName() + "  (+$" + amenity.getPrice() + ")");
             cb.setDisable(alreadyOnRoom);
 
             if (alreadyOnRoom) {
@@ -482,9 +483,7 @@ public class RoomBrowseView extends Application {
 
             cb.setOnAction(e -> {
                 if (cb.isSelected()) {
-                    if (!extraAmenities.contains(amenity)) {
-                        extraAmenities.add(amenity);
-                    }
+                    if (!extraAmenities.contains(amenity)) extraAmenities.add(amenity);
                 } else {
                     extraAmenities.remove(amenity);
                 }
@@ -493,7 +492,6 @@ public class RoomBrowseView extends Application {
             amenityList.getChildren().add(cb);
         }
 
-
         Label paymentTitle = new Label("Payment Method");
         paymentTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
 
@@ -501,7 +499,6 @@ public class RoomBrowseView extends Application {
         paymentCombo.getItems().addAll(PaymentMethod.values());
         paymentCombo.setPromptText("Select payment method");
         paymentCombo.setPrefWidth(260);
-
 
         Button confirmBtn = new Button("Confirm Reservation");
         confirmBtn.getStyleClass().add("button");
@@ -528,19 +525,12 @@ public class RoomBrowseView extends Application {
 
             try {
                 Reservation res = guest.makeReservation(room, selectedStart, selectedEnd);
-                resHolder[0] = res;
-
-                for (Amenity a : extraAmenities) {
-                    res.addExtraAmenity(a);
-                }
-
+                for (Amenity a : extraAmenities) res.addExtraAmenity(a);
                 Invoice invoice = new Invoice(res, paymentCombo.getValue());
                 res.setInvoice(invoice);
                 guest.checkout(res, paymentCombo.getValue());
-
                 popup.close();
-                showInvoicePopup(invoice, stage);
-
+                showInvoicePopup(invoice);
             } catch (Exception ex) {
                 errorLabel.setText(ex.getMessage());
                 errorLabel.setVisible(true);
@@ -554,30 +544,20 @@ public class RoomBrowseView extends Application {
         popupScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         popupRoot.getChildren().addAll(
-                popupTitle,
-                datesLabel,
-                priceLabel,
+                popupTitle, datesLabel, priceLabel,
                 new Separator(),
-                amenityTitle,
-                amenityList,
+                amenityTitle, amenityList,
                 new Separator(),
-                paymentTitle,
-                paymentCombo,
-                errorLabel,
-                btnRow
+                paymentTitle, paymentCombo,
+                errorLabel, btnRow
         );
 
-        Scene popupScene = new Scene(popupScroll, 440, 560);
-        popupScene.getStylesheets().add(
-                getClass().getResource("/style.css").toExternalForm()
-        );
-
+        Scene popupScene = SceneManager.buildScene(popupScroll, 440, 560);
         popup.setScene(popupScene);
         popup.show();
     }
 
-
-    private void showInvoicePopup(Invoice invoice, Stage stage) {
+    private void showInvoicePopup(Invoice invoice) {
 
         Stage popup = new Stage();
         popup.setTitle("Reservation Confirmed");
@@ -594,12 +574,17 @@ public class RoomBrowseView extends Application {
         details.setHgap(30);
         details.setVgap(12);
 
-        addDetailRow(details, "Invoice ID", "INV-" + invoice.getInvoiceId(), 0);
-        addDetailRow(details, "Room", invoice.getReservation().getRoom().getRoomType().getName() + " Room", 1);
-        addDetailRow(details, "Check In", invoice.getReservation().getCheckInDate().toString(), 2);
-        addDetailRow(details, "Check Out", invoice.getReservation().getCheckOutDate().toString(), 3);
-        addDetailRow(details, "Payment", invoice.getPaymentMethod().toString(), 4);
-        addDetailRow(details, "Total", "$" + String.format("%.2f", invoice.getTotalAmount()), 5);
+        addDetailRow(details, "Invoice ID",  "INV-" + invoice.getInvoiceId(), 0);
+        addDetailRow(details, "Room",
+                invoice.getReservation().getRoom().getRoomType().getName() + " Room", 1);
+        addDetailRow(details, "Check In",
+                invoice.getReservation().getCheckInDate().toString(), 2);
+        addDetailRow(details, "Check Out",
+                invoice.getReservation().getCheckOutDate().toString(), 3);
+        addDetailRow(details, "Payment",
+                invoice.getPaymentMethod().toString(), 4);
+        addDetailRow(details, "Total",
+                "$" + String.format("%.2f", invoice.getTotalAmount()), 5);
 
         Button closeBtn = new Button("Done");
         closeBtn.getStyleClass().add("button");
@@ -610,11 +595,7 @@ public class RoomBrowseView extends Application {
 
         root.getChildren().addAll(title, details, closeBtn);
 
-        Scene scene = new Scene(root, 420, 360);
-        scene.getStylesheets().add(
-                getClass().getResource("/style.css").toExternalForm()
-        );
-
+        Scene scene = SceneManager.buildScene(root, 420, 360);
         popup.setScene(scene);
         popup.show();
     }
@@ -622,10 +603,8 @@ public class RoomBrowseView extends Application {
     private void addDetailRow(GridPane grid, String label, String value, int row) {
         Label l = new Label(label);
         l.getStyleClass().add("section-title");
-
         Label v = new Label(value);
         v.setStyle("-fx-font-size: 14; -fx-text-fill: #374151;");
-
         grid.add(l, 0, row);
         grid.add(v, 1, row);
     }

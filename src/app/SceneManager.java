@@ -23,10 +23,13 @@ public class SceneManager {
         return primaryStage;
     }
 
+
     private static void showLoadingThen(Runnable onFinished) {
         ProgressIndicator loader = new ProgressIndicator();
         StackPane loadingPane = new StackPane(loader);
-        loadingPane.setStyle("-fx-background-color: white;");
+
+        String bg = ThemeManager.getInstance().isDarkMode() ? "#1a1a2e" : "white";
+        loadingPane.setStyle("-fx-background-color: " + bg + ";");
 
         Scene loadingScene = new Scene(
                 loadingPane,
@@ -41,6 +44,7 @@ public class SceneManager {
         pause.play();
     }
 
+
     public static void switchScene(String fxmlPath) {
         showLoadingThen(() -> {
             try {
@@ -48,10 +52,7 @@ public class SceneManager {
                         SceneManager.class.getResource(fxmlPath)
                 );
                 Parent root = loaderFXML.load();
-                Scene newScene = new Scene(root);
-                newScene.getStylesheets().add(
-                        SceneManager.class.getResource("/style.css").toExternalForm()
-                );
+                Scene newScene = buildScene(root);
                 primaryStage.setScene(newScene);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -61,10 +62,7 @@ public class SceneManager {
 
     public static void switchDashboard(Parent root) {
         showLoadingThen(() -> {
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(
-                    SceneManager.class.getResource("/style.css").toExternalForm()
-            );
+            Scene scene = buildScene(root);
             primaryStage.setScene(scene);
         });
     }
@@ -82,5 +80,18 @@ public class SceneManager {
     public static Parent loadFXML(String path) throws IOException {
         FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(path));
         return loader.load();
+    }
+
+
+    public static Scene buildScene(Parent root) {
+        Scene scene = new Scene(root);
+        ThemeManager.getInstance().registerScene(scene);
+        return scene;
+    }
+
+    public static Scene buildScene(Parent root, double width, double height) {
+        Scene scene = new Scene(root, width, height);
+        ThemeManager.getInstance().registerScene(scene);
+        return scene;
     }
 }
