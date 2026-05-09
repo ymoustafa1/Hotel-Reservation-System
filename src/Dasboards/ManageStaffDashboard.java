@@ -38,7 +38,6 @@ public class ManageStaffDashboard extends Application {
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(scroll);
 
-        // ── Title row ──────────────────────────────────────────────────────────
         HBox titleRow = new HBox();
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -57,16 +56,13 @@ public class ManageStaffDashboard extends Application {
 
         titleRow.getChildren().addAll(titleBox, titleSpacer, addStaffBtn);
 
-        // ── Staff table ────────────────────────────────────────────────────────
         VBox tableSection = new VBox(0);
         tableSection.getStyleClass().addAll("card");
         tableSection.setPadding(new Insets(0));
 
-        // header row
         GridPane tableHeader = buildTableHeader();
         tableSection.getChildren().add(tableHeader);
 
-        // body — we wrap in a VBox so we can refresh it
         VBox tableBody = new VBox(0);
         refreshTableBody(tableBody, tableSection);
 
@@ -74,7 +70,6 @@ public class ManageStaffDashboard extends Application {
 
         centerArea.getChildren().addAll(titleRow, tableSection);
 
-        // ── Add dialog ────────────────────────────────────────────────────────
         addStaffBtn.setOnAction(e -> openAddDialog(stage, tableBody, tableSection));
 
         stage.setScene(scene);
@@ -83,7 +78,6 @@ public class ManageStaffDashboard extends Application {
         stage.show();
     }
 
-    // ── Table helpers ──────────────────────────────────────────────────────────
 
     private GridPane buildTableHeader() {
         GridPane header = new GridPane();
@@ -109,7 +103,6 @@ public class ManageStaffDashboard extends Application {
     }
 
     private void applyColumnConstraints(GridPane grid) {
-        // constraints are added inline in buildTableHeader
     }
 
     private void refreshTableBody(VBox tableBody, VBox tableSection) {
@@ -134,7 +127,6 @@ public class ManageStaffDashboard extends Application {
             Label roleLbl  = styledCell("Receptionist", cellStyle);
             Label hoursLbl = styledCell(rec.getWorkingHours() + " hrs", cellStyle);
 
-            // action buttons
             HBox actions = new HBox(8);
             actions.setAlignment(Pos.CENTER_LEFT);
             actions.setStyle(cellStyle);
@@ -142,7 +134,6 @@ public class ManageStaffDashboard extends Application {
             Button deleteBtn = new Button("Delete");
             deleteBtn.getStyleClass().add("danger-button");
 
-            // inline confirm
             Label confirmLbl = new Label("Delete?");
             confirmLbl.setStyle("-fx-text-fill: #991B1B; -fx-font-size: 12;");
             confirmLbl.setVisible(false); confirmLbl.setManaged(false);
@@ -207,7 +198,6 @@ public class ManageStaffDashboard extends Application {
         return l;
     }
 
-    // ── Add Receptionist dialog ────────────────────────────────────────────────
 
     private void openAddDialog(Stage owner, VBox tableBody, VBox tableSection) {
 
@@ -273,7 +263,6 @@ public class ManageStaffDashboard extends Application {
             String password = passField.getText().trim();
             String hoursText = hoursField.getText().trim();
 
-            // basic validation
             if (username.isEmpty()) {
                 showError(errorLabel, "Username cannot be empty.");
                 return;
@@ -283,7 +272,6 @@ public class ManageStaffDashboard extends Application {
                 return;
             }
 
-            // unique username check
             boolean taken = HotelDatabase.staffMembers.stream()
                     .anyMatch(s -> s.getUsername().equalsIgnoreCase(username));
             if (taken) {

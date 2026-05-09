@@ -32,12 +32,11 @@ public class ReceptionistChatDashboard extends Application {
     private Receptionist receptionist;
     private ChatClient chatClient;
 
-    // guestUsername -> their message VBox
     private final Map<String, VBox> conversations = new LinkedHashMap<>();
     private String activeGuest = null;
 
-    private VBox guestListBox;     // left: clickable guest name rows
-    private VBox messagePane;      // right: bubbles for active guest
+    private VBox guestListBox;
+    private VBox messagePane;
     private ScrollPane messageScroll;
     private TextField inputField;
     private Label statusLabel;
@@ -86,7 +85,6 @@ public class ReceptionistChatDashboard extends Application {
         connectClient();
     }
 
-    // ── Left panel: guest list ────────────────────────────────────────────────
 
     private VBox buildLeftPanel() {
         VBox panel = new VBox(0);
@@ -120,7 +118,6 @@ public class ReceptionistChatDashboard extends Application {
         return panel;
     }
 
-    // ── Right panel: header + messages + input ────────────────────────────────
 
     private VBox buildRightPanel(Stage stage) {
         VBox panel = new VBox(0);
@@ -179,7 +176,6 @@ public class ReceptionistChatDashboard extends Application {
         messagePane.setPadding(new Insets(16));
         messagePane.setStyle("-fx-background-color: #F9FAFB;");
 
-        // Placeholder shown before any guest is selected
         Label placeholder = new Label("Select a guest to view the conversation.");
         placeholder.setStyle("-fx-font-size: 12; -fx-text-fill: #9CA3AF;");
         HBox ph = new HBox(placeholder);
@@ -243,10 +239,8 @@ public class ReceptionistChatDashboard extends Application {
         return bar;
     }
 
-    // ── Guest list management ─────────────────────────────────────────────────
 
     private void addGuestToList(String guestUsername) {
-        // Remove "No guests yet…" placeholder if present
         guestListBox.getChildren().removeIf(
                 n -> n instanceof Label l && l.getText().equals("No guests yet…")
         );
@@ -269,7 +263,6 @@ public class ReceptionistChatDashboard extends Application {
         guestBtn.setUserData(guestUsername);
         guestListBox.getChildren().add(guestBtn);
 
-        // Auto-select the first guest that connects
         if (activeGuest == null) {
             switchToGuest(guestUsername, guestBtn);
         }
@@ -279,7 +272,6 @@ public class ReceptionistChatDashboard extends Application {
         activeGuest = guestUsername;
         activeChatLabel.setText("Chatting with: " + guestUsername);
 
-        // Update button highlight states
         guestListBox.getChildren().forEach(n -> {
             if (n instanceof Button b) {
                 boolean active = guestUsername.equals(b.getUserData());
@@ -287,7 +279,6 @@ public class ReceptionistChatDashboard extends Application {
             }
         });
 
-        // Swap message pane content
         VBox pane = conversations.get(guestUsername);
         if (pane != null) {
             messageScroll.setContent(pane);
@@ -304,7 +295,6 @@ public class ReceptionistChatDashboard extends Application {
                 "-fx-cursor: hand;";
     }
 
-    // ── Messaging ─────────────────────────────────────────────────────────────
 
     private void sendReply() {
         String text = inputField.getText().trim();
@@ -317,7 +307,6 @@ public class ReceptionistChatDashboard extends Application {
     private void onMessageReceived(ChatClient.ChatMessage msg) {
         Platform.runLater(() -> {
             if (msg.isSelf()) {
-                // Echo of our own reply — add to the active guest's pane
                 VBox pane = conversations.get(activeGuest);
                 if (pane != null) addBubble(pane, msg.text(), true);
             } else {
@@ -336,7 +325,6 @@ public class ReceptionistChatDashboard extends Application {
 
                 addBubble(pane, msg.text(), false);
 
-                // If this guest is active, keep scroll at bottom
                 if (sender.equals(activeGuest)) {
                     messageScroll.setContent(pane);
                     Platform.runLater(() -> messageScroll.setVvalue(1.0));
@@ -345,7 +333,6 @@ public class ReceptionistChatDashboard extends Application {
         });
     }
 
-    // ── Bubble builder ────────────────────────────────────────────────────────
 
     private void addBubble(VBox pane, String text, boolean isSelf) {
         String time = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
@@ -402,7 +389,6 @@ public class ReceptionistChatDashboard extends Application {
         pane.getChildren().add(row);
     }
 
-    // ── Connection ────────────────────────────────────────────────────────────
 
     private void connectClient() {
         chatClient = new ChatClient(RECEPTIONIST_REGISTER_NAME, this::onMessageReceived);
@@ -429,7 +415,6 @@ public class ReceptionistChatDashboard extends Application {
         if (chatClient != null) chatClient.disconnect();
     }
 
-    // ── Draggable window ──────────────────────────────────────────────────────
 
     private void enableDrag(HBox root, Stage stage) {
         final double[] offset = new double[2];

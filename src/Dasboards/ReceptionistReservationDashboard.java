@@ -40,7 +40,6 @@ public class ReceptionistReservationDashboard extends Application {
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(scroll);
 
-        // ── Page header ──────────────────────────────────────────────────
         VBox pageHeader = new VBox(4);
         Label pageTitle = new Label("Reservations");
         pageTitle.getStyleClass().add("title-label");
@@ -48,7 +47,6 @@ public class ReceptionistReservationDashboard extends Application {
         pageSub.getStyleClass().add("subtitle-label");
         pageHeader.getChildren().addAll(pageTitle, pageSub);
 
-        // ── Filter bar ───────────────────────────────────────────────────
         HBox filterBar = new HBox(12);
         filterBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -70,7 +68,6 @@ public class ReceptionistReservationDashboard extends Application {
                 clearBtn
         );
 
-        // ── Table card ───────────────────────────────────────────────────
         VBox tableCard = new VBox(0);
         tableCard.getStyleClass().add("card");
         tableCard.setPadding(new Insets(0));
@@ -166,7 +163,6 @@ public class ReceptionistReservationDashboard extends Application {
         table.getColumns().addAll(idCol, guestCol, roomCol, checkInCol, checkOutCol, statusCol, actionsCol);
         refreshTable("All", "");
 
-        // wire filters
         Runnable applyFilter = () -> refreshTable(statusFilter.getValue(), searchField.getText());
         statusFilter.valueProperty().addListener((a, b, c) -> applyFilter.run());
         searchField.textProperty().addListener((a, b, c) -> applyFilter.run());

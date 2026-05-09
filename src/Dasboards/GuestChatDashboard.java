@@ -81,7 +81,6 @@ public class GuestChatDashboard extends Application {
         connectClient();
     }
 
-    // ── Header ────────────────────────────────────────────────────────────────
 
     private HBox buildHeader(Stage stage) {
         HBox header = new HBox(10);
@@ -126,7 +125,6 @@ public class GuestChatDashboard extends Application {
         return header;
     }
 
-    // ── Message area ──────────────────────────────────────────────────────────
 
     private ScrollPane buildMessages() {
         messagePane = new VBox(10);
@@ -151,7 +149,6 @@ public class GuestChatDashboard extends Application {
         return messageScroll;
     }
 
-    // ── Input bar ─────────────────────────────────────────────────────────────
 
     private HBox buildInputBar() {
         HBox bar = new HBox(8);
@@ -192,7 +189,6 @@ public class GuestChatDashboard extends Application {
         return bar;
     }
 
-    // ── Messaging ─────────────────────────────────────────────────────────────
 
     private void sendMessage() {
         String text = inputField.getText().trim();
@@ -205,7 +201,6 @@ public class GuestChatDashboard extends Application {
         Platform.runLater(() -> addBubble(msg.text(), msg.isSelf()));
     }
 
-    // ── Bubble builder ────────────────────────────────────────────────────────
 
     private void addBubble(String text, boolean isSelf) {
         String time = LocalTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
@@ -265,7 +260,6 @@ public class GuestChatDashboard extends Application {
         messagePane.getChildren().add(row);
     }
 
-    // ── Connection ────────────────────────────────────────────────────────────
 
     private void connectClient() {
         String username = (guest != null) ? guest.getUsername() : "guest";
@@ -295,7 +289,6 @@ public class GuestChatDashboard extends Application {
         if (chatClient != null) chatClient.disconnect();
     }
 
-    // ── Draggable window ──────────────────────────────────────────────────────
 
     private void enableDrag(VBox root, Stage stage) {
         final double[] offset = new double[2];

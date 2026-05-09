@@ -24,7 +24,6 @@ public class GuestDashboard extends Application {
 
     private Guest guest;
 
-    // ── live stat label so cancel updates it instantly ─────────────────────────
     private Label activeResValue;
 
     public GuestDashboard() {}
@@ -33,9 +32,7 @@ public class GuestDashboard extends Application {
         this.guest = guest;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  start
-    // ══════════════════════════════════════════════════════════════════════════
+
     @Override
     public void start(Stage stage) {
 
@@ -48,7 +45,6 @@ public class GuestDashboard extends Application {
 
         root.setLeft(SidebarGuest.createSidebar("Dashboard"));
 
-        // ── centre scroll ──────────────────────────────────────────────────────
         VBox centerArea = new VBox(25);
         centerArea.getStyleClass().add("dashboard-pane");
         centerArea.setPadding(new Insets(30));
@@ -60,7 +56,6 @@ public class GuestDashboard extends Application {
         mainCenterScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(mainCenterScroll);
 
-        // ── header ─────────────────────────────────────────────────────────────
         HBox headerBox = new HBox();
         headerBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -85,7 +80,6 @@ public class GuestDashboard extends Application {
         headerBox.getChildren().addAll(welcomeLabel, headerSpacer, dateTimeBox);
         centerArea.getChildren().add(headerBox);
 
-        // ── stat cards — keep a live reference to active-reservations ──────────
         activeResValue = new Label(String.valueOf(getActiveReservations().size()));
         activeResValue.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
 
@@ -103,7 +97,6 @@ public class GuestDashboard extends Application {
         );
         centerArea.getChildren().add(statsBox);
 
-        // ── bottom layout: upcoming + quick actions ────────────────────────────
         HBox bottomLayout = new HBox(25);
         bottomLayout.setAlignment(Pos.TOP_CENTER);
 
@@ -137,7 +130,6 @@ public class GuestDashboard extends Application {
         bottomLayout.getChildren().addAll(upcomingSection, quickActionsCard);
         centerArea.getChildren().add(bottomLayout);
 
-        // ── recent invoices ────────────────────────────────────────────────────
         VBox recentInvoicesSection = new VBox(15);
 
         HBox invoiceHeader = new HBox();
@@ -203,9 +195,6 @@ public class GuestDashboard extends Application {
         root.requestFocus();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Stat cards
-    // ══════════════════════════════════════════════════════════════════════════
 
     /** Standard stat card — value is fixed at build time. */
     private VBox createStatCard(String title, String value, String iconPath) {
@@ -239,9 +228,7 @@ public class GuestDashboard extends Application {
         return card;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Reservation list / card
-    // ══════════════════════════════════════════════════════════════════════════
+
 
     ScrollPane createReservationList(VBox upcomingSection) {
         VBox reservationList = new VBox(15);
@@ -274,7 +261,6 @@ public class GuestDashboard extends Application {
         card.setAlignment(Pos.CENTER_LEFT);
         card.setStyle("-fx-cursor: default;");
 
-        // room image
         String roomType = res.getRoom().getRoomType().getName();
         String imgPath  = "/" + roomType + ".jpg";
 
@@ -295,7 +281,6 @@ public class GuestDashboard extends Application {
         clip.setArcHeight(20);
         roomImg.setClip(clip);
 
-        // details
         VBox details = new VBox(5);
         HBox.setHgrow(details, Priority.ALWAYS);
 
@@ -307,7 +292,6 @@ public class GuestDashboard extends Application {
 
         details.getChildren().addAll(name, date);
 
-        // actions
         VBox actions = new VBox(10);
         actions.setAlignment(Pos.TOP_RIGHT);
 
@@ -322,7 +306,6 @@ public class GuestDashboard extends Application {
         cancelBtn.setPrefWidth(100);
 
         cancelBtn.setOnAction(e -> {
-            // build inline confirmation card
             VBox confirmCard = new VBox(15);
             confirmCard.getStyleClass().add("confirmation-card");
 
@@ -358,7 +341,7 @@ public class GuestDashboard extends Application {
             confirmBtn.setOnAction(ev -> {
                 res.setStatus(ReservationStatus.CANCELLED);
                 upcomingSection.getChildren().remove(confirmCard);
-                refreshReservations(upcomingSection);   // updates list AND stat card
+                refreshReservations(upcomingSection);
             });
         });
 
@@ -367,24 +350,18 @@ public class GuestDashboard extends Application {
         return card;
     }
 
-    /**
-     * Rebuilds the reservation list inside upcomingSection (children index 1+)
-     * and also refreshes the Active Reservations stat card label.
-     */
+
     private void refreshReservations(VBox upcomingSection) {
-        // ── update stat card ──────────────────────────────────────────────────
         activeResValue.setText(String.valueOf(getActiveReservations().size()));
 
-        // ── rebuild list (keep title at index 0) ──────────────────────────────
+
         if (upcomingSection.getChildren().size() > 1) {
             upcomingSection.getChildren().remove(1, upcomingSection.getChildren().size());
         }
         upcomingSection.getChildren().add(createReservationList(upcomingSection));
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Quick-action rows
-    // ══════════════════════════════════════════════════════════════════════════
+
 
     private HBox createActionRow(String iconPath, String title, String sub) {
         HBox row = new HBox(15);
@@ -426,9 +403,7 @@ public class GuestDashboard extends Application {
         return row;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Helpers
-    // ══════════════════════════════════════════════════════════════════════════
+
 
     private Label createTableCell(String text) {
         Label l = new Label(text);

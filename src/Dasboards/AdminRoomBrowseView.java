@@ -197,7 +197,6 @@ public class AdminRoomBrowseView extends Application {
         String roomTypeName = room.getRoomType().getName();
         Image image = null;
 
-// 1. Absolute path stored when admin uploaded an image
         String storedPath = room.getRoomType().getImagePath();
         if (storedPath != null) {
             try {

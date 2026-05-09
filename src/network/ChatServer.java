@@ -8,45 +8,26 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * Multi-threaded Chat Server.
- *
- * Features:
- *  - Each connecting client gets its own ClientHandler thread (ServerSocket/Socket).
- *  - Messages are routed between named users (guest <-> receptionist).
- *  - Offline buffering: messages to offline users are queued and flushed on reconnect.
- *  - File persistence: every message is appended to chat_history/<sender>_<recipient>.log
- *    so history survives app restarts.
- *  - On registration, the server replays saved history to the connecting client via
- *    HISTORY: prefixed lines so the UI can pre-populate the chat pane.
- */
 public class ChatServer {
 
     public static final int PORT = 5555;
 
-    // History files stored relative to the working directory
     private static final Path HISTORY_DIR = Paths.get("chat_history");
 
-    // Connected clients keyed by username
     private static final Map<String, ClientHandler> connectedClients =
             new ConcurrentHashMap<>();
 
-    // Offline message buffer: recipientUsername -> queued outgoing lines
     private static final Map<String, List<String>> messageBuffer =
             new ConcurrentHashMap<>();
 
     private static ServerSocket serverSocket;
     private static volatile boolean running = false;
 
-    // -----------------------------------------------------------------------
-    // Start / Stop
-    // -----------------------------------------------------------------------
 
     public static void start() {
         if (running) return;
         running = true;
 
-        // Ensure history directory exists
         try { Files.createDirectories(HISTORY_DIR); }
         catch (IOException e) { System.err.println("[ChatServer] Cannot create history dir: " + e.getMessage()); }
 
@@ -83,18 +64,12 @@ public class ChatServer {
         } catch (IOException ignored) {}
     }
 
-    // -----------------------------------------------------------------------
-    // Registration & history replay
-    // -----------------------------------------------------------------------
-
     static void register(String username, ClientHandler handler) {
         connectedClients.put(username, handler);
         System.out.println("[ChatServer] Registered: " + username);
 
-        // Replay saved history for this user
         replayHistory(username, handler);
 
-        // Flush offline buffer
         List<String> buffered = messageBuffer.remove(username);
         if (buffered != null) {
             System.out.println("[ChatServer] Flushing " + buffered.size() + " buffered message(s) to " + username);
@@ -107,24 +82,13 @@ public class ChatServer {
         System.out.println("[ChatServer] Disconnected: " + username);
     }
 
-    // -----------------------------------------------------------------------
-    // History file helpers
-    // -----------------------------------------------------------------------
-
-    /**
-     * Returns the canonical history file for a conversation between two users.
-     * Always uses alphabetical order so guest_receptionist == receptionist_guest.
-     */
     private static Path historyFile(String userA, String userB) {
         String[] pair = {userA, userB};
         Arrays.sort(pair);
         return HISTORY_DIR.resolve(pair[0] + "_" + pair[1] + ".log");
     }
 
-    /**
-     * Append one message line to the history file.
-     * Format: TIMESTAMP|sender|text
-     */
+
     static void appendHistory(String sender, String recipient, String text) {
         String timestamp = LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -138,12 +102,7 @@ public class ChatServer {
         }
     }
 
-    /**
-     * Send all stored history lines for this user to the freshly connected handler.
-     * Scans all history files that involve this username and sends them as
-     * HISTORY:<sender>:<timestamp>:<text>
-     * so the client can render them as past bubbles.
-     */
+
     private static void replayHistory(String username, ClientHandler handler) {
         try {
             if (!Files.exists(HISTORY_DIR)) return;
@@ -155,15 +114,13 @@ public class ChatServer {
                         return parts.length == 2 &&
                                 (parts[0].equals(username) || parts[1].equals(username));
                     })
-                    .sorted() // consistent ordering
+                    .sorted()
                     .forEach(file -> {
                         try {
                             List<String> lines = Files.readAllLines(file);
                             for (String line : lines) {
-                                // FORMAT: timestamp|sender|text
                                 String[] parts = line.split("\\|", 3);
                                 if (parts.length == 3) {
-                                    // Send as: HISTORY:<sender>:<timestamp>:<text>
                                     handler.send("HISTORY:" + parts[1] + ":" + parts[0] + ":" + parts[2]);
                                 }
                             }
@@ -177,16 +134,7 @@ public class ChatServer {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Routing
-    // -----------------------------------------------------------------------
 
-    /**
-     * Protocol: TO:<recipient>:<sender>:<text>
-     *
-     * Saves to history, delivers to recipient (or buffers if offline),
-     * and echoes back to sender.
-     */
     static void route(String protocol) {
         if (protocol.startsWith("TO:")) {
             String[] parts = protocol.split(":", 4);
@@ -195,7 +143,6 @@ public class ChatServer {
                 String sender    = parts[2];
                 String text      = parts[3];
 
-                // Persist to history file
                 appendHistory(sender, recipient, text);
 
                 String outgoing = "MSG:" + sender + ":" + text;
@@ -204,14 +151,12 @@ public class ChatServer {
                 if (recipientHandler != null) {
                     recipientHandler.send(outgoing);
                 } else {
-                    // Buffer for offline recipient
                     messageBuffer
                             .computeIfAbsent(recipient, k -> Collections.synchronizedList(new ArrayList<>()))
                             .add(outgoing);
                     System.out.println("[ChatServer] Buffered for offline: " + recipient);
                 }
 
-                // Echo to sender
                 ClientHandler senderHandler = connectedClients.get(sender);
                 if (senderHandler != null) {
                     senderHandler.send("ECHO:" + sender + ":" + text);
@@ -234,9 +179,6 @@ public class ChatServer {
         return Collections.unmodifiableSet(connectedClients.keySet());
     }
 
-    // -----------------------------------------------------------------------
-    // ClientHandler
-    // -----------------------------------------------------------------------
 
     static class ClientHandler implements Runnable {
 
@@ -258,7 +200,7 @@ public class ChatServer {
                 String firstLine = in.readLine();
                 if (firstLine != null && firstLine.startsWith("REGISTER:")) {
                     username = firstLine.substring("REGISTER:".length()).trim();
-                    register(username, this); // replays history + flushes buffer
+                    register(username, this);
                     out.println("OK:Registered as " + username);
                 } else {
                     out.println("ERR:First message must be REGISTER:<username>");
@@ -285,9 +227,6 @@ public class ChatServer {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // main
-    // -----------------------------------------------------------------------
     public static void main(String[] args) {
         start();
         System.out.println("[ChatServer] Running. Press ENTER to stop.");

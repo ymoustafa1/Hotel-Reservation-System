@@ -28,7 +28,6 @@ public class RoomAmenities extends Application {
     private FlowPane roomAmenitiesPane;
     private FlowPane hotelAmenitiesPane;
 
-    // Resources folder — resolved once so we can copy images into it
     private Path resourcesDir;
 
     public RoomAmenities() {}
@@ -37,7 +36,6 @@ public class RoomAmenities extends Application {
     @Override
     public void start(Stage stage) {
 
-        // resolve the resources root (where /style.css lives)
         try {
             var cssUrl = getClass().getResource("/style.css");
             if (cssUrl != null) {
@@ -259,7 +257,6 @@ public class RoomAmenities extends Application {
         editBtn.setOnAction(e -> openEditAmenityDialog(amenity, pane, type, owner));
         delBtn.setOnAction(e -> {
             HotelDatabase.amenities.remove(amenity);
-            // also remove from any room types that reference it
             for (RoomType rt : HotelDatabase.roomTypes)
                 rt.getAmenities().remove(amenity);
             fillAmenityPane(pane, type, owner);
@@ -289,7 +286,6 @@ public class RoomAmenities extends Application {
         TextField nameField  = formField("e.g. Deluxe");
         TextField priceField = formField("e.g. 200");
 
-        // image picker
         File[] chosen = {null};
         Label imgStatus = new Label("No image selected");
         imgStatus.setStyle("-fx-text-fill:gray;-fx-font-size:12;");
@@ -299,7 +295,6 @@ public class RoomAmenities extends Application {
         form.add(boldLbl("Base Price:"), 0, 1); form.add(priceField, 1, 1);
         form.add(boldLbl("Image:"),      0, 2); form.add(imgRow,     1, 2);
 
-        // amenity checklist
         Label amenHeader = new Label("Amenities:");
         amenHeader.setStyle("-fx-font-weight:bold;");
 
@@ -342,12 +337,10 @@ public class RoomAmenities extends Application {
 
             RoomType rt = new RoomType(name, price);
 
-            // add checked amenities
             for (CheckBox cb : boxes) {
                 if (cb.isSelected()) rt.addAmenity((Amenity) cb.getUserData());
             }
 
-            // copy image into resources
             rt.setImagePath(
                     copyImageForType(
                             chosen[0],
@@ -367,9 +360,6 @@ public class RoomAmenities extends Application {
         showDialog(dialog, root, 500, 480, owner);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  EDIT ROOM TYPE  — with amenity checklist
-    // ══════════════════════════════════════════════════════════════════════
 
     private void openEditRoomTypeDialog(RoomType rt, Stage owner) {
         Stage dialog = new Stage();
@@ -395,7 +385,6 @@ public class RoomAmenities extends Application {
         form.add(boldLbl("Base Price:"), 0, 1); form.add(priceField, 1, 1);
         form.add(boldLbl("Image:"),      0, 2); form.add(imgRow,     1, 2);
 
-        // amenity checklist — pre-tick what the room type already has
         Label amenHeader = new Label("Amenities:");
         amenHeader.setStyle("-fx-font-weight:bold;");
 
@@ -437,13 +426,11 @@ public class RoomAmenities extends Application {
             rt.setName(name);
             rt.setBasePrice(price);
 
-            // rebuild amenity list from checkboxes
             rt.getAmenities().clear();
             for (CheckBox cb : boxes) {
                 if (cb.isSelected()) rt.addAmenity((Amenity) cb.getUserData());
             }
 
-            // copy new image if chosen
             if (chosen[0] != null) {
 
                 rt.setImagePath(
@@ -508,7 +495,6 @@ public class RoomAmenities extends Application {
                     .anyMatch(a -> a.getName().equalsIgnoreCase(name));
             if (dup) { showErr(error, "That amenity name already exists."); return; }
 
-            // copy image and record path
             String imgPath = null;
             if (chosen[0] != null) imgPath = copyImageForAmenity(chosen[0], name);
 
@@ -526,9 +512,6 @@ public class RoomAmenities extends Application {
         showDialog(dialog, root, 460, 300, owner);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  EDIT AMENITY
-    // ══════════════════════════════════════════════════════════════════════
 
     private void openEditAmenityDialog(Amenity amenity, FlowPane pane,
                                        AmenityType type, Stage owner) {
@@ -587,9 +570,6 @@ public class RoomAmenities extends Application {
         showDialog(dialog, root, 460, 300, owner);
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  IMAGE HELPERS
-    // ══════════════════════════════════════════════════════════════════════
 
     /**
      * Copies the chosen file into the resources directory as <name>.png/jpg,
@@ -635,7 +615,6 @@ public class RoomAmenities extends Application {
     private ImageView amenityIcon(Amenity amenity, double size) {
         Image img = null;
 
-        // 1. stored absolute path from a previous upload
         String stored = amenity.getImagePath();
         if (stored != null) {
             try {
@@ -644,7 +623,6 @@ public class RoomAmenities extends Application {
             } catch (Exception ignored) {}
         }
 
-        // 2. classpath by name (built-in assets)
         if (img == null || img.isError()) {
             for (String path : new String[]{
                     "/" + amenity.getName() + ".png",
@@ -662,7 +640,6 @@ public class RoomAmenities extends Application {
             }
         }
 
-        // 3. generic fallback
         if (img == null || img.isError()) {
             try { img = new Image(getClass().getResourceAsStream("/bed.png")); }
             catch (Exception ignored) {}
@@ -675,9 +652,7 @@ public class RoomAmenities extends Application {
         return iv;
     }
 
-    // ══════════════════════════════════════════════════════════════════════
-    //  SMALL UI HELPERS
-    // ══════════════════════════════════════════════════════════════════════
+
 
     private Button iconBtn(String icon, String color, String bg) {
         Button b = new Button(icon);

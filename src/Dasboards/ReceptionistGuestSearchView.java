@@ -38,7 +38,6 @@ public class ReceptionistGuestSearchView extends Application {
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(scroll);
 
-        // ── Page header ──────────────────────────────────────────────────
         VBox pageHeader = new VBox(4);
         Label pageTitle = new Label("Find Guest");
         pageTitle.getStyleClass().add("title-label");
@@ -46,7 +45,6 @@ public class ReceptionistGuestSearchView extends Application {
         pageSub.getStyleClass().add("subtitle-label");
         pageHeader.getChildren().addAll(pageTitle, pageSub);
 
-        // ── Search card ──────────────────────────────────────────────────
         VBox searchCard = new VBox(16);
         searchCard.getStyleClass().add("card");
         searchCard.setPadding(new Insets(24));
@@ -75,7 +73,6 @@ public class ReceptionistGuestSearchView extends Application {
 
         searchCard.getChildren().addAll(searchTitle, searchRow, errorLabel);
 
-        // ── Result card (shown after search) ────────────────────────────
         VBox resultCard = new VBox(16);
         resultCard.getStyleClass().add("card");
         resultCard.setPadding(new Insets(24));
@@ -89,7 +86,6 @@ public class ReceptionistGuestSearchView extends Application {
         infoGrid.setHgap(40);
         infoGrid.setVgap(12);
 
-        // placeholders — filled on search
         Label[] values = new Label[6];
         String[] fields = {"Username", "Balance", "Date of Birth", "Address", "Gender", "Active Reservations"};
         for (int i = 0; i < fields.length; i++) {
@@ -101,7 +97,6 @@ public class ReceptionistGuestSearchView extends Application {
             infoGrid.add(values[i], 1, i);
         }
 
-        // Reservation history sub-section
         Label resHistoryTitle = new Label("Reservation History");
         resHistoryTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14; -fx-padding: 8 0 4 0;");
 
@@ -110,7 +105,6 @@ public class ReceptionistGuestSearchView extends Application {
         resultCard.getChildren().addAll(resultTitle, new Separator(), infoGrid,
                 new Separator(), resHistoryTitle, resHistoryBox);
 
-        // ── Search action ────────────────────────────────────────────────
         Receptionist receptionist = (Receptionist) SessionManager.getCurrentUser();
 
         Runnable doSearch = () -> {
@@ -135,7 +129,6 @@ public class ReceptionistGuestSearchView extends Application {
                 return;
             }
 
-            // fill info
             values[0].setText(g.getUsername());
             values[1].setText("$" + String.format("%.2f", g.getBalance()));
             values[2].setText(g.getDateOfBirth() != null ? g.getDateOfBirth().toString() : "—");
@@ -148,7 +141,6 @@ public class ReceptionistGuestSearchView extends Application {
                     .count();
             values[5].setText(String.valueOf(activeCount));
 
-            // reservation history chips
             resHistoryBox.getChildren().clear();
             boolean hasAny = false;
             for (Reservation r : HotelDatabase.reservations) {

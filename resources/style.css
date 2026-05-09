@@ -488,7 +488,6 @@
     -fx-font-size: 14px;
     -fx-text-fill: rgba(255,255,255,0.9);
 }
-/* ROOM CARDS */
 
 .card {
     -fx-background-color: white;
@@ -633,7 +632,6 @@
     -fx-cursor: hand;
 }
 
-/* AUTH TABS */
 
 .tab-pane {
     -fx-background-color: transparent;
