@@ -8,11 +8,7 @@ import java.time.*;
 
 public class Main {
     public static void main(String[] args) {
-        HotelDatabase.initializeDatabase();
-
-        HotelDatabase.insertSeedData();
-
-        HotelDatabase.loadData();
+        HotelDatabase.initializeDummyData();
         Welcome();
     }
 
@@ -985,7 +981,6 @@ public class Main {
 
                     Reservation res = new Reservation(g, room, start, end);
                     HotelDatabase.reservations.add(res);
-                    HotelDatabase.insertReservation(res);
                     while (true)
                     {
                         System.out.println("Add extra amenities? (1 = Yes, 0 = No)");

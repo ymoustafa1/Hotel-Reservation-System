@@ -122,7 +122,7 @@ public class GuestDashboard extends Application {
         VBox actionsList = new VBox(12);
         actionsList.getChildren().addAll(
                 createActionRow("/bed.png",      "Browse Available Rooms", "Find your perfect stay"),
-                createActionRow("/calendar.png", "Make a Reservation",     "Book a new room"),
+                createActionRow("/calendar.png", "View Reservations",     "Book a new room"),
                 createActionRow("/invoice.png",  "View My Invoices",       "Check your invoices")
         );
 

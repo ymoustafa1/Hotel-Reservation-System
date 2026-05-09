@@ -270,7 +270,6 @@ public class ReceptionistWalkInView extends Application {
 
             Reservation res = new Reservation(guest, room, start, end);
             HotelDatabase.reservations.add(res);
-            HotelDatabase.insertReservation(res);
             for (CheckBox cb : amenityBoxes) {
                 if (!cb.isSelected()) continue;
                 Amenity a = (Amenity) cb.getUserData();
@@ -385,7 +384,6 @@ public class ReceptionistWalkInView extends Application {
             Guest newGuest = new Guest(username, password, dob, balance,
                     addressField.getText().trim(), gender);
             HotelDatabase.guests.add(newGuest);
-            HotelDatabase.insertGuest(newGuest);
             guestField.setText(username);
             guestInfoLbl.setText("✔ Registered & selected: " + username
                     + "  |  Balance: $" + String.format("%.2f", balance));

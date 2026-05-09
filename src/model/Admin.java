@@ -42,7 +42,6 @@ public class Admin extends Staff {
         }
 
         HotelDatabase.rooms.add(r);
-        HotelDatabase.insertRoom(r);
     }
 
     //method for removing a room by removing any object of room that has a specific id
