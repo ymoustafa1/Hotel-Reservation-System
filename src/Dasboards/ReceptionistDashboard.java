@@ -66,7 +66,7 @@ public class ReceptionistDashboard extends Application {
                 createStatisticsCards(),
                 createMidRow(),
                 createRoomStatusCard(),
-                createChatCard()      // ◀ new chat shortcut card
+                createChatCard()
         );
 
         return main;
@@ -287,7 +287,6 @@ public class ReceptionistDashboard extends Application {
         return card;
     }
 
-    // ── NEW: Chat shortcut card ───────────────────────────────────────────────
     private VBox createChatCard() {
         VBox card = new VBox(12);
         card.setPadding(new Insets(20));

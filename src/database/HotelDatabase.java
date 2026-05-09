@@ -8,16 +8,11 @@ import java.util.ArrayList;
 
 public class HotelDatabase {
 
-    // =========================================================
-    // DATABASE
-    // =========================================================
+
 
     private static final String URL =
             "jdbc:sqlite:hotel.db?busy_timeout=5000";
 
-    // =========================================================
-    // IN-MEMORY CACHE
-    // =========================================================
 
     public static ArrayList<Guest> guests =
             new ArrayList<>();
@@ -42,9 +37,7 @@ public class HotelDatabase {
 
     private HotelDatabase() {}
 
-    // =========================================================
-    // CONNECTION
-    // =========================================================
+
 
     public static Connection connect()
             throws SQLException {
@@ -63,10 +56,6 @@ public class HotelDatabase {
         return DriverManager
                 .getConnection(URL);
     }
-
-    // =========================================================
-    // INITIALIZE DATABASE
-    // =========================================================
 
     public static void initializeDatabase() {
 
@@ -150,9 +139,6 @@ public class HotelDatabase {
         }
     }
 
-    // =========================================================
-    // SEED DATA
-    // =========================================================
 
     public static void insertSeedData() {
 
@@ -173,9 +159,7 @@ public class HotelDatabase {
             e.printStackTrace();
         }
 
-        // =====================================================
-        // CLEAR MEMORY
-        // =====================================================
+
 
         amenities.clear();
         roomTypes.clear();
@@ -185,9 +169,7 @@ public class HotelDatabase {
         reservations.clear();
         invoices.clear();
 
-        // =====================================================
-        // AMENITIES
-        // =====================================================
+
 
         Amenity wifi =
                 new Amenity(
@@ -214,9 +196,7 @@ public class HotelDatabase {
         amenities.add(ac);
         amenities.add(pool);
 
-        // =====================================================
-        // ROOM TYPES
-        // =====================================================
+
 
         RoomType single =
                 new RoomType(
@@ -233,9 +213,7 @@ public class HotelDatabase {
         roomTypes.add(single);
         roomTypes.add(deluxe);
 
-        // =====================================================
-        // ROOMS
-        // =====================================================
+
 
         Room r1 =
                 new Room(101, single);
@@ -250,9 +228,7 @@ public class HotelDatabase {
         rooms.add(r2);
         rooms.add(r3);
 
-        // =====================================================
-        // GUESTS
-        // =====================================================
+
 
         Guest youssef =
                 new Guest(
@@ -285,9 +261,7 @@ public class HotelDatabase {
         guests.add(youssef);
         guests.add(ahmed);
 
-        // =====================================================
-        // STAFF
-        // =====================================================
+
 
         Admin admin =
                 new Admin(
@@ -305,9 +279,7 @@ public class HotelDatabase {
         staffMembers.add(admin);
         staffMembers.add(rec);
 
-        // =====================================================
-        // RESERVATIONS
-        // =====================================================
+
 
         Reservation reservation =
                 new Reservation(
@@ -324,9 +296,6 @@ public class HotelDatabase {
 
         reservations.add(reservation);
 
-        // =====================================================
-        // INVOICES
-        // =====================================================
 
         Invoice invoice =
                 new Invoice(
@@ -336,9 +305,7 @@ public class HotelDatabase {
 
         invoices.add(invoice);
 
-        // =====================================================
-        // SAVE TO SQLITE
-        // =====================================================
+
 
         saveAllData();
 
@@ -390,9 +357,7 @@ public class HotelDatabase {
             insertInvoice(i);
         }
     }
-    // =========================================================
-    // LOAD DATABASE INTO MEMORY
-    // =========================================================
+
 
     public static void loadData() {
 
@@ -404,9 +369,6 @@ public class HotelDatabase {
         loadReservations();
     }
 
-    // =========================================================
-    // INSERT METHODS
-    // =========================================================
 
     public static void insertGuest(Guest guest) {
 
@@ -711,9 +673,6 @@ public class HotelDatabase {
         }
     }
 
-    // =========================================================
-    // LOAD METHODS
-    // =========================================================
 
     public static void loadGuests() {
 
@@ -777,9 +736,7 @@ public class HotelDatabase {
 
     public static void loadStaff() {}
 
-    // =========================================================
-    // FIND METHODS
-    // =========================================================
+
 
     public static Guest findGuest(
             String username
@@ -902,9 +859,7 @@ public class HotelDatabase {
         return null;
     }
 
-    // =========================================================
-    // VALIDATION
-    // =========================================================
+
 
     public static boolean validateDates(
             LocalDate checkInDate,

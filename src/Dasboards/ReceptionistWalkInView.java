@@ -41,7 +41,6 @@ public class ReceptionistWalkInView extends Application {
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
         root.setCenter(scroll);
 
-        // ── Page header ──────────────────────────────────────────────────
         VBox pageHeader = new VBox(4);
         Label pageTitle = new Label("Walk-in Check In");
         pageTitle.getStyleClass().add("title-label");
@@ -49,13 +48,11 @@ public class ReceptionistWalkInView extends Application {
         pageSub.getStyleClass().add("subtitle-label");
         pageHeader.getChildren().addAll(pageTitle, pageSub);
 
-        // ── Step 1: Guest + Dates + Room ─────────────────────────────────
         VBox step1Card = buildSectionCard("Step 1 — Guest, Dates & Room");
 
         GridPane step1Form = new GridPane();
         step1Form.setHgap(20); step1Form.setVgap(14);
 
-        // Guest row: field + register button
         Label guestLbl = boldLabel("Guest Username:");
         TextField guestField = new TextField();
         guestField.setPromptText("Enter guest username");
@@ -70,14 +67,12 @@ public class ReceptionistWalkInView extends Application {
         Label guestInfoLbl = new Label();
         guestInfoLbl.setStyle("-fx-font-size: 12;");
 
-        // Dates
         Label startLbl = boldLabel("Check-in Date:");
         DatePicker startPicker = new DatePicker(LocalDate.now());
 
         Label endLbl = boldLabel("Check-out Date:");
         DatePicker endPicker = new DatePicker(LocalDate.now().plusDays(1));
 
-        // Room
         Label roomLbl = boldLabel("Room:");
         ComboBox<Room> roomCombo = new ComboBox<>();
         roomCombo.setPromptText("Select a room");
@@ -95,7 +90,6 @@ public class ReceptionistWalkInView extends Application {
         roomInfoLbl.setWrapText(true);
         roomInfoLbl.setPrefWidth(340);
 
-        // ── Step 2 card declared early so refreshAmenities can target it ─
         VBox step2Card = buildSectionCard("Step 2 — Extra Amenities (Optional)");
 
         Label amenityNote = new Label("Only amenities NOT already included in the selected room are shown.");
@@ -108,14 +102,13 @@ public class ReceptionistWalkInView extends Application {
 
         List<CheckBox> amenityBoxes = new ArrayList<>();
 
-        // Rebuild extra-amenity checkboxes, excluding what the selected room already has
         Runnable refreshAmenities = () -> {
             amenityPane.getChildren().clear();
             amenityBoxes.clear();
             Room sel = roomCombo.getValue();
 
             for (Amenity a : HotelDatabase.amenities) {
-                if (sel != null && sel.getAmenities().contains(a)) continue; // already in room
+                if (sel != null && sel.getAmenities().contains(a)) continue;
                 CheckBox cb = new CheckBox(a.getName() + "  (+$" + a.getPrice() + ")");
                 cb.setUserData(a);
                 amenityBoxes.add(cb);
@@ -134,7 +127,6 @@ public class ReceptionistWalkInView extends Application {
 
         step2Card.getChildren().addAll(amenityNote, amenityPane);
 
-        // Refresh available rooms on date change
         Runnable refreshRooms = () -> {
             LocalDate s = startPicker.getValue();
             LocalDate e = endPicker.getValue();
@@ -157,7 +149,6 @@ public class ReceptionistWalkInView extends Application {
         startPicker.valueProperty().addListener((a, b, c) -> refreshRooms.run());
         endPicker.valueProperty().addListener((a, b, c)   -> refreshRooms.run());
 
-        // On room selection: update info label + rebuild extra amenities
         roomCombo.valueProperty().addListener((a, b, sel) -> {
             if (sel == null) { roomInfoLbl.setText(""); refreshAmenities.run(); return; }
             List<Amenity> ams = sel.getAmenities();
@@ -172,16 +163,14 @@ public class ReceptionistWalkInView extends Application {
                 roomInfoLbl.setText(sb.toString());
             }
             roomInfoLbl.setStyle("-fx-text-fill: #1D4ED8; -fx-font-size: 12;");
-            refreshAmenities.run(); // rebuild without room's amenities
+            refreshAmenities.run();
         });
 
-        // Guest validation
         guestField.focusedProperty().addListener((obs, old, focused) -> {
             if (!focused) validateGuestField(guestField, guestInfoLbl, receptionist);
         });
         guestField.setOnAction(e -> validateGuestField(guestField, guestInfoLbl, receptionist));
 
-        // Register button
         registerBtn.setOnAction(e ->
                 openRegisterGuestDialog(stage, guestField, guestInfoLbl, receptionist));
 
@@ -194,7 +183,6 @@ public class ReceptionistWalkInView extends Application {
 
         step1Card.getChildren().add(step1Form);
 
-        // ── Step 3: Payment ──────────────────────────────────────────────
         VBox step3Card = buildSectionCard("Step 3 — Payment Method");
 
         ToggleGroup payGroup = new ToggleGroup();
@@ -207,7 +195,6 @@ public class ReceptionistWalkInView extends Application {
 
         step3Card.getChildren().add(new HBox(30, cashBtn, cardBtn));
 
-        // ── Summary card ─────────────────────────────────────────────────
         VBox summaryCard = buildSectionCard("Summary");
         Label summaryPlaceholder = new Label("Fill in the details above to see a summary.");
         summaryPlaceholder.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13;");
@@ -245,7 +232,6 @@ public class ReceptionistWalkInView extends Application {
         startPicker.valueProperty().addListener((a, b, c) -> updateSummary.run());
         endPicker.valueProperty().addListener((a, b, c)   -> updateSummary.run());
         guestField.textProperty().addListener((a, b, c)   -> updateSummary.run());
-        // re-attach summary listeners whenever amenity checkboxes are rebuilt
         amenityPane.getChildren().addListener(
                 (javafx.collections.ListChangeListener<javafx.scene.Node>) ch -> {
                     for (CheckBox cb : amenityBoxes) {
@@ -253,7 +239,6 @@ public class ReceptionistWalkInView extends Application {
                     }
                 });
 
-        // ── Error + Submit ────────────────────────────────────────────────
         Label errorLabel = new Label();
         errorLabel.setStyle("-fx-text-fill: #991B1B; -fx-font-size: 13;");
         errorLabel.setVisible(false); errorLabel.setManaged(false);
@@ -319,7 +304,6 @@ public class ReceptionistWalkInView extends Application {
         stage.show();
     }
 
-    // ── Register New Guest Dialog ─────────────────────────────────────────
 
     private void openRegisterGuestDialog(Stage owner, TextField guestField,
                                          Label guestInfoLbl, Receptionist receptionist) {
@@ -398,12 +382,10 @@ public class ReceptionistWalkInView extends Application {
                 catch (Exception ignored) {}
             }
 
-            // Adjust this constructor call to match your actual Guest class signature
             Guest newGuest = new Guest(username, password, dob, balance,
                     addressField.getText().trim(), gender);
             HotelDatabase.guests.add(newGuest);
             HotelDatabase.insertGuest(newGuest);
-            // Auto-fill the main form's guest field
             guestField.setText(username);
             guestInfoLbl.setText("✔ Registered & selected: " + username
                     + "  |  Balance: $" + String.format("%.2f", balance));
@@ -424,7 +406,6 @@ public class ReceptionistWalkInView extends Application {
         dialog.showAndWait();
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private void validateGuestField(TextField field, Label infoLbl, Receptionist receptionist) {
         String text = field.getText().trim();

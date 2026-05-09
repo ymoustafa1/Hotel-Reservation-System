@@ -175,7 +175,6 @@ public class AdminInvoiceDashboard extends Application {
             applyFilters();
         });
 
-        // AUTO FILTER
 
         searchField.textProperty()
                 .addListener(
@@ -226,13 +225,11 @@ public class AdminInvoiceDashboard extends Application {
         invoiceTable.setPrefHeight(500);
         VBox.setVgrow(invoiceTable, Priority.ALWAYS);
 
-        // Invoice ID
         TableColumn<Invoice, String> idCol = new TableColumn<>("Invoice ID");
         idCol.setCellValueFactory(data ->
                 new SimpleStringProperty("INV-" + data.getValue().getInvoiceId())
         );
 
-        // Guest Name
         TableColumn<Invoice, String> guestCol = new TableColumn<>("Guest");
         guestCol.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -240,7 +237,6 @@ public class AdminInvoiceDashboard extends Application {
                 )
         );
 
-        // Room
         TableColumn<Invoice, String> roomCol = new TableColumn<>("Room");
         roomCol.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -248,7 +244,6 @@ public class AdminInvoiceDashboard extends Application {
                 )
         );
 
-        // Check-in
         TableColumn<Invoice, String> checkInCol = new TableColumn<>("Check In");
         checkInCol.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -256,7 +251,6 @@ public class AdminInvoiceDashboard extends Application {
                 )
         );
 
-        // Check-out
         TableColumn<Invoice, String> checkOutCol = new TableColumn<>("Check Out");
         checkOutCol.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -264,7 +258,6 @@ public class AdminInvoiceDashboard extends Application {
                 )
         );
 
-        // Amount
         TableColumn<Invoice, String> amountCol = new TableColumn<>("Amount");
         amountCol.setCellValueFactory(data ->
                 new SimpleStringProperty(
@@ -272,13 +265,11 @@ public class AdminInvoiceDashboard extends Application {
                 )
         );
 
-        // Payment Method
         TableColumn<Invoice, String> methodCol = new TableColumn<>("Payment");
         methodCol.setCellValueFactory(data ->
                 new SimpleStringProperty(data.getValue().getPaymentMethod().toString())
         );
 
-        // Status
         TableColumn<Invoice, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(data ->
                 new SimpleStringProperty("Paid")
@@ -304,7 +295,6 @@ public class AdminInvoiceDashboard extends Application {
             }
         });
 
-        // Action
         TableColumn<Invoice, String> actionCol = new TableColumn<>("Action");
         actionCol.setCellFactory(col -> new TableCell<>() {
             private final Button viewBtn = new Button("View");
@@ -356,7 +346,6 @@ public class AdminInvoiceDashboard extends Application {
 
             boolean matches = true;
 
-            // SEARCH
 
             String invoiceId =
                     "inv-" + inv.getInvoiceId();
@@ -393,7 +382,6 @@ public class AdminInvoiceDashboard extends Application {
                 matches = false;
             }
 
-            // PAYMENT METHOD
 
             if (
                     payment != null
@@ -413,7 +401,6 @@ public class AdminInvoiceDashboard extends Application {
                 }
             }
 
-            // FROM DATE
 
             if (
                     fromDatePicker.getValue()
@@ -432,7 +419,6 @@ public class AdminInvoiceDashboard extends Application {
                 }
             }
 
-            // TO DATE
 
             if (
                     toDatePicker.getValue()

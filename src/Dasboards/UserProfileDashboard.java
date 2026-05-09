@@ -176,7 +176,6 @@ public class UserProfileDashboard extends Application {
         balanceCard.getChildren().addAll(balanceTitle, balance, balanceActions);
         centerArea.getChildren().add(balanceCard);
 
-        // ── Support Chat Card ────────────────────────────────────────────────
         VBox supportCard = new VBox(15);
         supportCard.getStyleClass().add("card");
         supportCard.setStyle("-fx-cursor: default;");
@@ -191,7 +190,6 @@ public class UserProfileDashboard extends Application {
         Button supportBtn = new Button("Open Chat Support");
         supportBtn.getStyleClass().add("button");
 
-        // ▶ Wire button to GuestChatDashboard
         supportBtn.setOnAction(e -> {
             GuestChatDashboard chatDashboard = new GuestChatDashboard(guest);
             Stage chatStage = new Stage();
@@ -205,7 +203,6 @@ public class UserProfileDashboard extends Application {
         supportCard.getChildren().addAll(supportTitle, supportSub, supportBtn);
         centerArea.getChildren().add(supportCard);
 
-        // ── Edit Profile Popup ───────────────────────────────────────────────
         editBtn.setOnAction(e -> {
             Stage popup = new Stage();
 

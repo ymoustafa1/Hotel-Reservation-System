@@ -66,7 +66,6 @@ public class RoomBrowseView extends Application {
         Label subtitle = new Label("Select your dates to see available rooms.");
         subtitle.getStyleClass().add("subtitle-label");
 
-        // ---------------- DATE PICKER ROW ----------------
 
         HBox dateRow = new HBox(15);
         dateRow.setAlignment(Pos.CENTER_LEFT);
@@ -152,7 +151,6 @@ public class RoomBrowseView extends Application {
                  clearFilterBtn
         );
 
-        // ---------------- ROOM CONTAINER ----------------
 
         roomContainer = new FlowPane();
         roomContainer.setAlignment(Pos.TOP_LEFT);
@@ -426,7 +424,6 @@ public class RoomBrowseView extends Application {
         return card;
     }
 
-    // ---------------- RESERVATION FLOW ----------------
 
     private void openReservationFlow(Room room, Stage stage) {
 
@@ -459,7 +456,6 @@ public class RoomBrowseView extends Application {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 
-        // ---------------- EXTRA AMENITIES ----------------
 
         Label amenityTitle = new Label("Extra Amenities");
         amenityTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
@@ -497,7 +493,6 @@ public class RoomBrowseView extends Application {
             amenityList.getChildren().add(cb);
         }
 
-        // ---------------- PAYMENT METHOD ----------------
 
         Label paymentTitle = new Label("Payment Method");
         paymentTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
@@ -507,7 +502,6 @@ public class RoomBrowseView extends Application {
         paymentCombo.setPromptText("Select payment method");
         paymentCombo.setPrefWidth(260);
 
-        // ---------------- CONFIRM BUTTON ----------------
 
         Button confirmBtn = new Button("Confirm Reservation");
         confirmBtn.getStyleClass().add("button");
